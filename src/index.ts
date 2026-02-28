@@ -1,22 +1,16 @@
-export * from "./components/Buttonconfig";
-export * from "./components/ButtonconfigComponent";
-export * from "./components/Footer";
-export * from "./components/GameTitleBar";
-export * from "./components/HeroDialog";
-export * from "./components/LoadingScreen";
-export * from "./components/MusicPlayer";
-export * from "./components/Navbar";
-export * from "./components/SidebarComponent";
-export * from "./components/TextWelcome";
-export * from "./components/magicui/dock";
-export * from "./components/magicui/hero-video-dialog";
-export * from "./components/magicui/morphing-text";
-export * from "./components/ui/sidebar";
-export * from "./lib/utils";
-export * from "./pages/admin";
-export * from "./pages/blog";
-export * from "./pages/config";
-export * from "./pages/features";
-export * from "./pages/home";
-export * from "./pages/noticias";
-export * from "./pages/opcion3";
+// Layout components
+export { default as TitleBar } from "./components/layout/TitleBar";
+export { default as Sidebar } from "./components/layout/Sidebar";
+export { default as Footer } from "./components/layout/Footer";
+
+// Shared components
+export { default as LoadingScreen } from "./components/shared/LoadingScreen";
+export { HeroVideoDialogDemo } from "./components/shared/HeroDialog";
+
+// Magic UI components
+export { Dock, DockIcon } from "./components/magicui/dock";
+export { default as HeroVideoDialog } from "./components/magicui/hero-video-dialog";
+export { MorphingText } from "./components/magicui/morphing-text";
+
+// Utilities
+export { cn } from "./lib/utils";
