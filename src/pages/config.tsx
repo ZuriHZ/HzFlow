@@ -1,146 +1,200 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { IconSettings, IconCheck, IconX } from "@tabler/icons-react";
 
 const defaultConfig = {
-  darkMode: false,
-  notifications: true,
-  // language: "es", // Ejemplo para futuras opciones
-  // privacyMode: false, // Ejemplo para futuras opciones
+    darkMode: false,
+    notifications: true,
 };
 
 const Config = () => {
-  const [config, setConfig] = useState(() => {
-    const saved = localStorage.getItem("config");
-    return saved ? JSON.parse(saved) : defaultConfig;
-  });
-  const [originalConfig, setOriginalConfig] = useState(config);
-  const [saved, setSaved] = useState(false);
-  const [cancelled, setCancelled] = useState(false);
+    const [config, setConfig] = useState(() => {
+        const saved = localStorage.getItem("config");
+        return saved ? JSON.parse(saved) : defaultConfig;
+    });
+    const [originalConfig, setOriginalConfig] = useState(config);
+    const [feedback, setFeedback] = useState<"saved" | "cancelled" | null>(
+        null,
+    );
 
-  useEffect(() => {
-    // Actualiza el modo oscuro del documento si cambia
-    document.documentElement.classList.toggle("dark", config.darkMode);
-  }, [config.darkMode]);
+    useEffect(() => {
+        document.documentElement.classList.toggle("dark", config.darkMode);
+    }, [config.darkMode]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, type } = e.target;
-    const value = type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value;
-    setConfig((prev) => ({ ...prev, [name]: value }));
-    setSaved(false);
-    setCancelled(false);
-  };
+    const handleChange = (name: string, value: boolean) => {
+        setConfig((prev: any) => ({ ...prev, [name]: value }));
+        setFeedback(null);
+    };
 
-  const handleSave = () => {
-    localStorage.setItem("config", JSON.stringify(config));
-    setOriginalConfig(config);
-    setSaved(true);
-    setCancelled(false);
-  };
+    const handleSave = () => {
+        localStorage.setItem("config", JSON.stringify(config));
+        setOriginalConfig(config);
+        setFeedback("saved");
+        setTimeout(() => setFeedback(null), 2500);
+    };
 
-  const handleCancel = () => {
-    setConfig(originalConfig);
-    setCancelled(true);
-    setSaved(false);
-  };
+    const handleCancel = () => {
+        setConfig(originalConfig);
+        setFeedback("cancelled");
+        setTimeout(() => setFeedback(null), 2500);
+    };
 
-  return (
-    <div className="max-w-2xl mx-auto mt-16 p-10 bg-zinc-900/95 text-white rounded-2xl shadow-2xl flex flex-col gap-8 border border-zinc-800">
-      <h1 className="text-4xl font-extrabold mb-2 flex items-center gap-2">
-        <span role="img" aria-label="gear">⚙️</span> Configuración
-      </h1>
-      <p className="text-zinc-400 mb-4 text-lg">Personaliza tu experiencia en la aplicación</p>
+    const hasChanges =
+        JSON.stringify(config) !== JSON.stringify(originalConfig);
 
-      {/* Preferencias principales */}
-      <section className="bg-zinc-800/80 rounded-xl p-6 mb-2 flex flex-col gap-4 border border-zinc-700">
-        <h2 className="text-xl font-semibold mb-2">Preferencias generales</h2>
-        <div className="flex flex-col gap-3">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="darkMode"
-              checked={config.darkMode}
-              onChange={handleChange}
-              className="accent-cyan-400 w-5 h-5 transition-all duration-150"
-            />
-            <span className="text-base">Modo oscuro</span>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="notifications"
-              checked={config.notifications}
-              onChange={handleChange}
-              className="accent-cyan-400 w-5 h-5 transition-all duration-150"
-            />
-            <span className="text-base">Notificaciones</span>
-          </label>
+    return (
+        <div className="max-w-2xl mx-auto w-full space-y-6">
+            {/* Header */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-2"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-400 flex items-center justify-center">
+                        <IconSettings size={20} className="text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-white/90">
+                            Configuración
+                        </h1>
+                        <p className="text-sm text-white/40">
+                            Personaliza tu experiencia
+                        </p>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* Settings sections */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="space-y-4"
+            >
+                {/* General preferences */}
+                <div className="rounded-xl bg-white/[0.03] border border-white/5 divide-y divide-white/5">
+                    <div className="px-5 py-3">
+                        <h2 className="text-sm font-semibold text-white/60">
+                            Preferencias generales
+                        </h2>
+                    </div>
+
+                    {/* Dark mode toggle */}
+                    <div className="flex items-center justify-between px-5 py-4">
+                        <div>
+                            <p className="text-sm font-medium text-white/80">
+                                Modo oscuro
+                            </p>
+                            <p className="text-xs text-white/30 mt-0.5">
+                                Cambia el tema de la interfaz
+                            </p>
+                        </div>
+                        <button
+                            onClick={() =>
+                                handleChange("darkMode", !config.darkMode)
+                            }
+                            className={`relative w-11 h-6 rounded-full transition-all duration-300 
+                                ${config.darkMode ? "bg-violet-500" : "bg-white/10"}`}
+                        >
+                            <div
+                                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300
+                                    ${config.darkMode ? "left-[22px]" : "left-0.5"}`}
+                            />
+                        </button>
+                    </div>
+
+                    {/* Notifications toggle */}
+                    <div className="flex items-center justify-between px-5 py-4">
+                        <div>
+                            <p className="text-sm font-medium text-white/80">
+                                Notificaciones
+                            </p>
+                            <p className="text-xs text-white/30 mt-0.5">
+                                Recibe alertas y actualizaciones
+                            </p>
+                        </div>
+                        <button
+                            onClick={() =>
+                                handleChange(
+                                    "notifications",
+                                    !config.notifications,
+                                )
+                            }
+                            className={`relative w-11 h-6 rounded-full transition-all duration-300 
+                                ${config.notifications ? "bg-violet-500" : "bg-white/10"}`}
+                        >
+                            <div
+                                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300
+                                    ${config.notifications ? "left-[22px]" : "left-0.5"}`}
+                            />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <AnimatePresence>
+                    {hasChanges && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="flex items-center justify-between p-4 rounded-xl bg-violet-500/10 border border-violet-500/20"
+                        >
+                            <span className="text-sm text-white/60">
+                                Tienes cambios sin guardar
+                            </span>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleCancel}
+                                    className="px-4 py-1.5 rounded-lg text-sm font-medium bg-white/5 text-white/60 
+                                        hover:bg-white/10 hover:text-white transition-all border border-white/5"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    className="px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-violet-500 to-fuchsia-500 
+                                        text-white hover:shadow-lg hover:shadow-violet-500/25 transition-all"
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+
+            {/* Feedback toast */}
+            <AnimatePresence>
+                {feedback && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-lg
+                            ${
+                                feedback === "saved"
+                                    ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300"
+                                    : "bg-red-500/20 border border-red-500/30 text-red-300"
+                            }`}
+                    >
+                        {feedback === "saved" ? (
+                            <IconCheck size={16} />
+                        ) : (
+                            <IconX size={16} />
+                        )}
+                        <span className="text-sm font-medium">
+                            {feedback === "saved"
+                                ? "¡Configuración guardada!"
+                                : "Cambios cancelados"}
+                        </span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
-      </section>
-
-      {/* Ejemplo de sección futura: idioma */}
-      {/**
-      <section className="bg-zinc-800/80 rounded-xl p-6 mb-2 flex flex-col gap-4 border border-zinc-700">
-        <h2 className="text-xl font-semibold mb-2">Idioma</h2>
-        <select
-          name="language"
-          value={config.language}
-          onChange={handleChange}
-          className="bg-zinc-900 text-white rounded-lg px-4 py-2 border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-        >
-          <option value="es">Español</option>
-          <option value="en">English</option>
-        </select>
-      </section>
-      */}
-
-      {/* Ejemplo de sección futura: privacidad */}
-      {/**
-      <section className="bg-zinc-800/80 rounded-xl p-6 mb-2 flex flex-col gap-4 border border-zinc-700">
-        <h2 className="text-xl font-semibold mb-2">Privacidad</h2>
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            name="privacyMode"
-            checked={config.privacyMode}
-            onChange={handleChange}
-            className="accent-cyan-400 w-5 h-5"
-          />
-          <span className="text-base">Modo privacidad</span>
-        </label>
-      </section>
-      */}
-
-      <div className="flex gap-4 justify-end mt-6">
-        <button
-          className="px-7 py-2 rounded-lg text-base font-bold bg-cyan-400 text-zinc-900 hover:bg-cyan-300 shadow transition-all duration-150"
-          type="button"
-          onClick={handleSave}
-        >
-          Guardar
-        </button>
-        <button
-          className="px-7 py-2 rounded-lg text-base font-bold bg-red-500 text-white hover:bg-red-400 shadow transition-all duration-150"
-          type="button"
-          onClick={handleCancel}
-        >
-          Cancelar
-        </button>
-      </div>
-
-      {/* Feedback visual animado */}
-      <div className="min-h-[32px] mt-2">
-        {saved && (
-          <div className="animate-fade-in text-cyan-400 bg-cyan-900/20 px-4 py-2 rounded-lg text-center shadow">
-            ¡Configuración guardada!
-          </div>
-        )}
-        {cancelled && (
-          <div className="animate-fade-in text-red-400 bg-red-900/20 px-4 py-2 rounded-lg text-center shadow">
-            Cambios cancelados.
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Config;

@@ -1,26 +1,53 @@
-import React from "react";
+import React, { useState } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import Config from "./pages/config";
+import "./index.css";
+
+// Layout
+import TitleBar from "./components/layout/TitleBar";
+import Sidebar from "./components/layout/Sidebar";
+import Footer from "./components/layout/Footer";
+
+// Pages
 import Home from "./pages/home";
+import Config from "./pages/config";
 import Noticias from "./pages/noticias";
 import Blog from "./pages/blog";
 import Features from "./pages/features";
-import Opcion3 from "./pages/opcion3";
-import "./index.css";
-import Footer from "./components/Footer";
-import ButtonComponent from "./components/ButtonconfigComponent";
+import Musica from "./pages/musica";
+import Extras from "./pages/extras";
+
+// Shared
+import LoadingScreen from "./components/shared/LoadingScreen";
 
 function App() {
+    const [loading, setLoading] = useState(true);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
+    if (loading) {
+        return <LoadingScreen onComplete={() => setLoading(false)} />;
+    }
+
+    const sidebarWidth = sidebarCollapsed ? 72 : 240;
 
     return (
         <Router>
-            <>
-            <div className="fixed w-full bg-purple-950 z-50">
-                <ButtonComponent />
-            </div>
-                <div className="flex min-h-screen w-full bg-purple-950">
-                    <div className="flex-1 flex flex-col min-h-screen md:ml-[340px] w-full">
-                        <main className="flex-1 flex flex-col items-center justify-center gap-32 w-full">
+            <div className="flex flex-col min-h-screen bg-app-bg">
+                {/* Title bar (Electron window controls) */}
+                <TitleBar />
+
+                <div className="flex flex-1 pt-10 w-full">
+                    {/* Sidebar navigation */}
+                    <Sidebar
+                        collapsed={sidebarCollapsed}
+                        onToggle={() => setSidebarCollapsed((p) => !p)}
+                    />
+
+                    {/* Main content area */}
+                    <main
+                        className="flex-1 flex flex-col min-h-[calc(100vh-2.5rem)] transition-all duration-300"
+                        style={{ marginLeft: sidebarWidth }}
+                    >
+                        <div className="flex-1 p-6 pt-8 overflow-y-auto w-full">
                             <Routes>
                                 <Route path="/" element={<Home />} />
                                 <Route path="/config" element={<Config />} />
@@ -33,15 +60,14 @@ function App() {
                                     path="/features"
                                     element={<Features />}
                                 />
-                                <Route path="/opcion3" element={<Opcion3 />} />
+                                <Route path="/musica" element={<Musica />} />
+                                <Route path="/extras" element={<Extras />} />
                             </Routes>
-                        </main>
-                        <div className="fixed bottom-0 w-full text-white">
-                        <Footer />
                         </div>
-                    </div>
+                        <Footer />
+                    </main>
                 </div>
-            </>
+            </div>
         </Router>
     );
 }
