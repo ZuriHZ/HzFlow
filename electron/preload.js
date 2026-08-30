@@ -9,4 +9,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     minimize: () => ipcRenderer.send("minimize-window"),
     maximize: () => ipcRenderer.send("toggle-maximize-window"),
     close: () => ipcRenderer.send("close-window"),
+    selectMusicFiles: () => ipcRenderer.invoke("select-music-files"),
+    toggleDevTools: () => ipcRenderer.send("devtools"),
 });

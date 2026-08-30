@@ -1,9 +1,6 @@
 import React from "react";
-import {
-    IconArrowsDiagonalMinimize,
-    IconMaximize,
-    IconX,
-} from "@tabler/icons-react";
+import { IconArrowsDiagonalMinimize, IconCode, IconMaximize, IconX } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
 
 interface WindowControl {
     id: string;
@@ -33,51 +30,30 @@ const windowControls: WindowControl[] = [
         title: "Cerrar",
         className: "hover:!bg-red-500 hover:!text-white",
     },
+    {
+        id: "dev-tools",
+        icon: <IconCode size={16} />,
+        onClick: () => (window as any).electronAPI?.toggleDevTools?.(),
+        title: "Herramientas de desarrollador",
+        className: "hover:!bg-violet-500 hover:!text-white",
+    },
 ];
-
 export default function TitleBar() {
     return (
-        <header
-            id="title-bar"
-            className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-10 px-4 select-none"
-            style={{
-                background:
-                    "linear-gradient(90deg, #0f0a1e 0%, #1a1035 50%, #2d1b69 100%)",
-                WebkitAppRegion: "drag" as any,
-                borderBottom: "1px solid rgba(139, 92, 246, 0.15)",
-            }}
-        >
-            {/* Left: App name with glow */}
+        <header id="title-bar" className="drag bg-titlebar fixed top-0 right-0 left-0 z-100 flex h-10 items-center justify-between border-b border-sidebar-border px-4 select-none">
             <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30">
                     <span className="text-[10px] font-black text-white">Z</span>
                 </div>
-                <span className="text-sm font-semibold text-white/90 tracking-wide">
-                    ZuriHZ
-                </span>
+                <span className="text-sm font-semibold tracking-wide text-white/90">ZuriHZ</span>
             </div>
 
-            {/* Right: Window controls */}
-            <div
-                className="flex items-center gap-0.5"
-                style={{ WebkitAppRegion: "no-drag" as any }}
-            >
-                {windowControls.map(
-                    ({ id, icon, onClick, title, className }) => (
-                        <button
-                            key={id}
-                            id={id}
-                            onClick={onClick}
-                            title={title}
-                            aria-label={title}
-                            className={`w-8 h-7 flex items-center justify-center text-white/60 
-                            hover:text-white hover:bg-white/10 rounded-md transition-all duration-200
-                            ${className || ""}`}
-                        >
-                            {icon}
-                        </button>
-                    ),
-                )}
+            <div className="no-drag flex items-center gap-0.5">
+                {windowControls.map(({ id, icon, onClick, title, className }) => (
+                    <button key={id} id={id} onClick={onClick} title={title} aria-label={title} className={cn("flex h-7 w-8 items-center justify-center rounded-md text-white/60 transition-all duration-200", "hover:bg-white/10 hover:text-white", className)}>
+                        {icon}
+                    </button>
+                ))}
             </div>
         </header>
     );
