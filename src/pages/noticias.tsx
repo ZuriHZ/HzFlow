@@ -36,7 +36,7 @@ const Noticias = () => {
                 className="flex items-center justify-between"
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-cyan-400">
                         <IconNews size={20} className="text-white" />
                     </div>
                     <div>
@@ -65,7 +65,7 @@ const Noticias = () => {
                             <option
                                 key={s.url}
                                 value={s.url}
-                                className="bg-[#1a1035]"
+                                className="bg-secondary"
                             >
                                 {s.name}
                             </option>

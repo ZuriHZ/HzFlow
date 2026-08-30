@@ -28,32 +28,26 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 1.05 }}
                     transition={{ duration: 0.5, ease: "easeInOut" }}
-                    className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
-                    style={{
-                        background:
-                            "radial-gradient(ellipse at center, #1a1035 0%, #0a0612 70%, #000 100%)",
-                    }}
+                    className="bg-loading-radial fixed inset-0 z-200 flex flex-col items-center justify-center"
                 >
-                    {/* Logo */}
                     <motion.div
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
                         className="mb-8"
                     >
-                        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400 flex items-center justify-center shadow-2xl shadow-violet-500/30">
+                        <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 via-fuchsia-500 to-cyan-400 shadow-2xl shadow-violet-500/30">
                             <span className="text-5xl font-black text-white">
                                 Z
                             </span>
                         </div>
                     </motion.div>
 
-                    {/* App name */}
                     <motion.h1
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="text-2xl font-bold text-white/90 mb-2 tracking-wide"
+                        className="mb-2 text-2xl font-bold tracking-wide text-white/90"
                     >
                         ZuriHZ
                     </motion.h1>
@@ -61,39 +55,36 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.5 }}
-                        className="text-sm text-white/30 mb-8"
+                        className="mb-8 text-sm text-white/30"
                     >
                         Preparando tu experiencia...
                     </motion.p>
 
-                    {/* Progress bar */}
                     <motion.div
                         initial={{ width: 0, opacity: 0 }}
                         animate={{ width: 280, opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.4 }}
-                        className="h-1.5 bg-white/5 rounded-full overflow-hidden"
+                        className="h-1.5 overflow-hidden rounded-full bg-white/5"
                     >
                         <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400"
+                            className="h-full rounded-full bg-linear-to-r from-violet-500 via-fuchsia-500 to-cyan-400"
                             style={{ width: `${progress}%` }}
                             transition={{ duration: 0.1 }}
                         />
                     </motion.div>
 
-                    {/* Percentage */}
                     <motion.span
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
-                        className="mt-4 text-xs text-white/20 font-mono"
+                        className="mt-4 font-mono text-xs text-white/20"
                     >
                         {progress}%
                     </motion.span>
 
-                    {/* Ambient glow effect */}
-                    <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-violet-600/10 rounded-full blur-[100px]" />
-                        <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-fuchsia-600/5 rounded-full blur-[80px]" />
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-[100px]" />
+                        <div className="absolute top-1/3 left-1/3 h-64 w-64 rounded-full bg-fuchsia-600/5 blur-[80px]" />
                     </div>
                 </motion.div>
             )}

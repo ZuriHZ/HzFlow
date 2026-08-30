@@ -64,7 +64,7 @@ const Features = () => {
                 className="space-y-2"
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-orange-500 to-amber-400">
                         <IconRocket size={20} className="text-white" />
                     </div>
                     <div>
@@ -90,12 +90,7 @@ const Features = () => {
                             hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
                     >
                         <div
-                            className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feat.color} 
-                            flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 
-                            shadow-lg`}
-                            style={{
-                                boxShadow: `0 8px 24px -8px ${feat.color.includes("blue") ? "rgba(59,130,246,0.3)" : feat.color.includes("violet") ? "rgba(139,92,246,0.3)" : feat.color.includes("fuchsia") ? "rgba(217,70,239,0.3)" : feat.color.includes("emerald") ? "rgba(16,185,129,0.3)" : feat.color.includes("orange") ? "rgba(249,115,22,0.3)" : "rgba(239,68,68,0.3)"}`,
-                            }}
+                            className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br shadow-lg transition-transform duration-300 group-hover:scale-110 ${feat.color}`}
                         >
                             <span className="text-white">{feat.icon}</span>
                         </div>

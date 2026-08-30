@@ -1,10 +1,12 @@
-{ "compilerOptions": {
-    "jsx": "react",
-    "esModuleInterop": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-        "@/*": ["src/*"]
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "esModuleInterop": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "@/*": ["./src/*"],
+            "@lib/*": ["./src/lib/*"]
+        }
     }
-} }
+}

@@ -52,7 +52,7 @@ const Config = () => {
                 className="space-y-2"
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-400 flex items-center justify-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-cyan-500 to-blue-400">
                         <IconSettings size={20} className="text-white" />
                     </div>
                     <div>
@@ -155,8 +155,7 @@ const Config = () => {
                                 </button>
                                 <button
                                     onClick={handleSave}
-                                    className="px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-violet-500 to-fuchsia-500 
-                                        text-white hover:shadow-lg hover:shadow-violet-500/25 transition-all"
+                                    className="rounded-lg bg-linear-to-r from-violet-500 to-fuchsia-500 px-4 py-1.5 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-violet-500/25"
                                 >
                                     Guardar
                                 </button>

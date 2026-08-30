@@ -57,7 +57,7 @@ const Extras = () => {
                 className="space-y-2"
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-orange-400">
                         <IconStar size={20} className="text-white" />
                     </div>
                     <div>
@@ -95,8 +95,7 @@ const Extras = () => {
                                 hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
                         >
                             <div
-                                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${link.color} 
-                                flex items-center justify-center group-hover:scale-110 transition-transform`}
+                                className={`flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br transition-transform group-hover:scale-110 ${link.color}`}
                             >
                                 <span className="text-white">{link.icon}</span>
                             </div>
@@ -151,7 +150,7 @@ const Extras = () => {
                 transition={{ delay: 0.8 }}
                 className="p-5 rounded-xl bg-white/[0.02] border border-white/5 text-center"
             >
-                <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400 flex items-center justify-center mb-3">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 via-fuchsia-500 to-cyan-400">
                     <span className="text-lg font-black text-white">Z</span>
                 </div>
                 <p className="text-sm text-white/50">
