@@ -2,6 +2,18 @@ const { app, BrowserWindow, Menu, ipcMain, dialog, protocol, net } = require("el
 const { pathToFileURL } = require("url");
 const path = require("path");
 
+// Función para no repetir el formateo de las canciones
+function formatSongPath(filePath) {
+    return {
+        src: pathToFileURL(filePath).href.replace("file://", "local-audio://"),
+        filePath: filePath,
+        title: filePath
+            .split(/[\\/]/)
+            .pop()
+            .replace(/\.[^/.]+$/, ""),
+    };
+}
+
 const isDev = !app.isPackaged;
 let win;
 function createWindow() {
@@ -117,17 +129,29 @@ ipcMain.handle("select-music-files", async () => {
     });
 
     if (result.canceled) return [];
+    return result.filePaths.map(formatSongPath);
+});
 
-    return result.filePaths.map((filePath) => ({
-        // Usamos pathToFileURL para que arme el "file:///D:/..." perfecto,
-        // y le cambiamos el 'file' por nuestro 'local-audio'
-        src: pathToFileURL(filePath).href.replace("file://", "local-audio://"),
-        // nombre de archivo sin extensión como título
-        title: filePath
-            .split(/[\\/]/)
-            .pop()
-            .replace(/\.[^/.]+$/, ""),
-    }));
+// NUEVO: Handler para procesar archivos soltados en la ventana
+ipcMain.handle("process-dropped-files", async (event, filePaths) => {
+    const validExtensions = [".mp3", ".wav", ".ogg", ".m4a"];
+
+    // Filtramos para que solo pasen archivos de audio
+    const validPaths = filePaths.filter((filePath) => validExtensions.some((ext) => filePath.toLowerCase().endsWith(ext)));
+
+    return validPaths.map(formatSongPath);
+});
+
+// Leer archivo de audio como buffer para crear Blob URL (soporta seek)
+ipcMain.handle("get-audio-data", async (event, filePath) => {
+    const fs = require("fs");
+    try {
+        const buffer = fs.readFileSync(filePath);
+        return buffer;
+    } catch (error) {
+        console.error("Error leyendo archivo:", filePath, error);
+        return null;
+    }
 });
 
 ipcMain.on("close-window", () => {

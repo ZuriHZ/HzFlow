@@ -3,25 +3,30 @@ import { persist } from "zustand/middleware";
 
 export interface Song {
     src: string;
+    filePath: string;
     title: string;
-    cover?: string; // Opcional por ahora, después podemos poner un cover por defecto
+    cover?: string;
 }
 
 interface PlayerStore {
-    // Estado
     playlist: Song[];
     currentIndex: number;
     isPlaying: boolean;
     volume: number;
+    isShuffle: boolean;
+    isRepeat: boolean;
 
-    // Acciones
-    setPlaylist: (songs: Song[]) => void;
+    addSongs: (songs: Song[]) => void;
+    removeSong: (index: number) => void;
+    clearPlaylist: () => void;
     playSong: (index: number) => void;
     playNext: () => void;
     playPrev: () => void;
     togglePlay: () => void;
     setIsPlaying: (playing: boolean) => void;
     setVolume: (volume: number) => void;
+    toggleShuffle: () => void;
+    toggleRepeat: () => void;
 }
 
 export const usePlayerStore = create<PlayerStore>()(
@@ -30,47 +35,84 @@ export const usePlayerStore = create<PlayerStore>()(
             playlist: [],
             currentIndex: 0,
             isPlaying: false,
-            volume: 1, // Volumen va de 0.0 a 1.0
+            volume: 1,
+            isShuffle: false,
+            isRepeat: false,
 
-            // Reemplaza la cola entera y empieza a reproducir la primera
-            setPlaylist: (songs) => set({ playlist: songs, currentIndex: 0, isPlaying: true }),
-
-            // Salta a una canción específica de la lista
-            playSong: (index) => set({ currentIndex: index, isPlaying: true }),
-
-            // Siguiente canción (frena en la última si no hay más)
-            playNext: () =>
+            // Agrega canciones al final de la cola
+            addSongs: (newSongs) =>
                 set((state) => {
-                    if (state.currentIndex < state.playlist.length - 1) {
-                        return { currentIndex: state.currentIndex + 1, isPlaying: true };
+                    const updatedPlaylist = [...state.playlist, ...newSongs];
+                    if (state.playlist.length === 0 && newSongs.length > 0) {
+                        return { playlist: updatedPlaylist, currentIndex: 0, isPlaying: true };
                     }
-                    return state; // Ya está en la última
+                    return { playlist: updatedPlaylist };
                 }),
 
-            // Canción anterior
+            removeSong: (index) =>
+                set((state) => {
+                    const newPlaylist = state.playlist.filter((_, i) => i !== index);
+                    let newIndex = state.currentIndex;
+                    if (newPlaylist.length === 0) {
+                        return { playlist: [], currentIndex: 0, isPlaying: false };
+                    }
+                    if (index < state.currentIndex) {
+                        newIndex = state.currentIndex - 1;
+                    } else if (index === state.currentIndex && state.currentIndex >= newPlaylist.length) {
+                        newIndex = newPlaylist.length - 1;
+                    }
+                    return { playlist: newPlaylist, currentIndex: newIndex };
+                }),
+
+            clearPlaylist: () => set({ playlist: [], currentIndex: 0, isPlaying: false }),
+
+            playSong: (index) => set({ currentIndex: index, isPlaying: true }),
+
+            // Lógica actualizada para Siguiente canción
+            playNext: () =>
+                set((state) => {
+                    if (state.playlist.length === 0) return state;
+
+                    if (state.isShuffle) {
+                        // Elegir una al azar que no sea la actual (si hay más de 1)
+                        if (state.playlist.length === 1) return { currentIndex: 0, isPlaying: true };
+                        let nextIndex;
+                        do {
+                            nextIndex = Math.floor(Math.random() * state.playlist.length);
+                        } while (nextIndex === state.currentIndex);
+                        return { currentIndex: nextIndex, isPlaying: true };
+                    }
+
+                    if (state.currentIndex < state.playlist.length - 1) {
+                        return { currentIndex: state.currentIndex + 1, isPlaying: true };
+                    } else if (state.isRepeat) {
+                        // Si llegamos al final y repeat está activo, volvemos a la 0
+                        return { currentIndex: 0, isPlaying: true };
+                    }
+
+                    return state;
+                }),
+
             playPrev: () =>
                 set((state) => ({
                     currentIndex: state.currentIndex > 0 ? state.currentIndex - 1 : 0,
                     isPlaying: true,
                 })),
 
-            // Play/Pause manual
             togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
-
-            // Sincronizar el estado de play cuando el audio termina/pausa por su cuenta
             setIsPlaying: (playing) => set({ isPlaying: playing }),
-
-            // Control de volumen
             setVolume: (volume) => set({ volume }),
+            toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
+            toggleRepeat: () => set((state) => ({ isRepeat: !state.isRepeat })),
         }),
         {
-            name: "mi-reproductor-storage", // Este es el nombre con el que se guarda en localStorage
-            // partialize elige qué cosas SÍ se guardan en el disco duro.
-            // ¡No ponemos isPlaying, así siempre arranca en false al abrir la app!
+            name: "mi-reproductor-storage",
             partialize: (state) => ({
                 playlist: state.playlist,
                 currentIndex: state.currentIndex,
                 volume: state.volume,
+                isShuffle: state.isShuffle, // Guardamos la preferencia
+                isRepeat: state.isRepeat, // Guardamos la preferencia
             }),
         },
     ),

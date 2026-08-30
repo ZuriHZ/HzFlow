@@ -11,4 +11,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     close: () => ipcRenderer.send("close-window"),
     selectMusicFiles: () => ipcRenderer.invoke("select-music-files"),
     toggleDevTools: () => ipcRenderer.send("devtools"),
+    processDroppedFiles: (paths) => ipcRenderer.invoke("process-dropped-files", paths),
+    getAudioData: (filePath) => ipcRenderer.invoke("get-audio-data", filePath),
 });
