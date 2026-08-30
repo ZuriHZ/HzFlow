@@ -52,7 +52,7 @@ const Blog = () => {
                 className="space-y-2"
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-400 flex items-center justify-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-500 to-pink-400">
                         <IconPencil size={20} className="text-white" />
                     </div>
                     <div>
@@ -81,7 +81,7 @@ const Blog = () => {
                             <div className="flex-1 space-y-2">
                                 <div className="flex items-center gap-2">
                                     <span
-                                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r ${post.color} text-white`}
+                                        className={`rounded-full bg-linear-to-r px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase ${post.color}`}
                                     >
                                         {post.tag}
                                     </span>

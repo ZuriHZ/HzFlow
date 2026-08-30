@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Play, XIcon } from "lucide-react";
 
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 
 type AnimationStyle =
     | "from-bottom"
@@ -93,7 +93,7 @@ export default function HeroVideoDialog({
                 <div className="absolute inset-0 flex scale-[0.5] items-center justify-center rounded-2xl transition-all duration-200 ease-out group-hover:scale-50">
                     <div className="flex size-28 items-center justify-center rounded-full bg-primary/10 backdrop-blur-md">
                         <div
-                            className={`relative flex size-20 scale-100 items-center justify-center rounded-full bg-gradient-to-b from-primary/30 to-primary shadow-md transition-all duration-200 ease-out group-hover:scale-[1.2]`}
+                            className="relative flex size-20 scale-100 items-center justify-center rounded-full bg-linear-to-b from-primary/30 to-primary shadow-md transition-all duration-200 ease-out group-hover:scale-[1.2]"
                         >
                             <Play
                                 className="size-8 scale-150 fill-white text-white transition-transform duration-200 ease-out group-hover:scale-105"

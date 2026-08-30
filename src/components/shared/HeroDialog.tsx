@@ -1,5 +1,5 @@
+import HeroVideoDialog from "@/components/magicui/hero-video-dialog";
 import React from "react";
-import HeroVideoDialog from "../magicui/hero-video-dialog";
 
 function getYouTubeEmbedUrl(url: string): string {
     try {
@@ -17,9 +17,9 @@ function getYouTubeEmbedUrl(url: string): string {
 
 const videoConfig = {
     videoLight: "https://youtu.be/RSL6KqWKFvo",
-    videoDark: "https://youtu.be/cWppAbqm9I8",
+    videoDark: "https://www.youtube.com/watch?v=fGyTN5UjnL4",
     imageLight: "https://i.ytimg.com/vi/RSL6KqWKFvo/hq720.jpg",
-    imageDark: "https://i.ytimg.com/vi/mq2dq_KeV0M/hq720.jpg",
+    imageDark: "https://i.ytimg.com/vi/fGyTN5UjnL4/hq720.jpg",
 };
 
 export function HeroVideoDialogDemo() {

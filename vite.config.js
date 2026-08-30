@@ -1,10 +1,10 @@
-// filepath: g:\Proyectos-Puebas\zuri-electron-app\vite.config.js
-import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
     root: "./src",
     base: "./",
     build: {
@@ -17,6 +17,7 @@ export default defineConfig({
     server: {
         port: 5173,
         strictPort: true,
+        open: true,
     },
     resolve: {
         alias: {

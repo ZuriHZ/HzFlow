@@ -3,11 +3,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ===== Theme tokens → Tailwind utilities (bg-primary, text-muted-foreground, etc.) ===== */
 @theme inline {
+    --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
+
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
@@ -23,6 +27,7 @@
     --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
     --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -41,8 +46,10 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ===== Design tokens (fuente única de verdad) ===== */
 :root {
     --radius: 0.625rem;
+
     --background: #0a0612;
     --foreground: #e8e0f0;
     --card: #130d24;
@@ -58,63 +65,116 @@
     --accent: #2d1b69;
     --accent-foreground: #e8e0f0;
     --destructive: #ef4444;
-    --border: rgba(139, 92, 246, 0.1);
-    --input: rgba(139, 92, 246, 0.15);
-    --ring: rgba(139, 92, 246, 0.3);
+    --destructive-foreground: #ffffff;
+    --border: rgb(139 92 246 / 0.1);
+    --input: rgb(139 92 246 / 0.15);
+    --ring: rgb(139 92 246 / 0.3);
+
     --chart-1: #8b5cf6;
     --chart-2: #06b6d4;
     --chart-3: #f59e0b;
     --chart-4: #a855f7;
     --chart-5: #ec4899;
+
     --sidebar: #0f0a1e;
     --sidebar-foreground: #e8e0f0;
     --sidebar-primary: #8b5cf6;
     --sidebar-primary-foreground: #ffffff;
     --sidebar-accent: #1a1035;
     --sidebar-accent-foreground: #e8e0f0;
-    --sidebar-border: rgba(139, 92, 246, 0.1);
-    --sidebar-ring: rgba(139, 92, 246, 0.3);
+    --sidebar-border: rgb(139 92 246 / 0.1);
+    --sidebar-ring: rgb(139 92 246 / 0.3);
 }
 
+/* App is dark-first; .dark keeps the same palette for shadcn/config toggle */
+.dark {
+    color-scheme: dark;
+}
+
+/* ===== Base ===== */
 @layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        border-color: var(--border);
+    }
+
     * {
-        @apply border-border outline-ring/50;
+        @apply outline-ring/50;
     }
+
+    html,
+    body,
+    #root {
+        height: 100%;
+    }
+
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground font-sans antialiased;
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection {
+        background: var(--ring);
+        color: var(--primary-foreground);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
     }
 }
 
-/* ===== Global Reset ===== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ===== Electron window chrome ===== */
+.drag {
+    -webkit-app-region: drag;
 }
 
-/* ===== Typography ===== */
-body {
-    font-family:
-        "Inter",
-        "Segoe UI",
-        system-ui,
-        -apple-system,
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-/* ===== App Background ===== */
-.bg-app-bg {
-    background: #0a0612;
-}
-
-/* ===== Electron: Title bar drag regions ===== */
 .no-drag {
     -webkit-app-region: no-drag;
 }
 
-/* ===== Custom Scrollbar ===== */
+/* ===== App surface gradients (tokens only) ===== */
+.bg-titlebar {
+    background: linear-gradient(
+        90deg,
+        var(--sidebar) 0%,
+        var(--secondary) 50%,
+        var(--accent) 100%
+    );
+}
+
+.bg-sidebar-panel {
+    background: linear-gradient(
+        180deg,
+        var(--sidebar) 0%,
+        var(--card) 50%,
+        var(--sidebar) 100%
+    );
+}
+
+.bg-hero-surface {
+    background: linear-gradient(
+        135deg,
+        var(--secondary) 0%,
+        var(--accent) 50%,
+        var(--sidebar) 100%
+    );
+}
+
+.bg-loading-radial {
+    background: radial-gradient(
+        ellipse at center,
+        var(--secondary) 0%,
+        var(--background) 70%,
+        #000 100%
+    );
+}
+
+/* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -125,21 +185,15 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(139, 92, 246, 0.15);
+    background: var(--input);
     border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(139, 92, 246, 0.3);
+    background: var(--ring);
 }
 
-/* ===== Selection ===== */
-::selection {
-    background: rgba(139, 92, 246, 0.3);
-    color: white;
-}
-
-/* ===== Range Input (Music Player) ===== */
+/* ===== Range input (music player) ===== */
 input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -152,15 +206,8 @@ input[type="range"]::-webkit-slider-thumb {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #8b5cf6;
+    background: var(--primary);
     cursor: pointer;
-    border: 2px solid white;
-    box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
-}
-
-/* ===== Focus styles ===== */
-:focus-visible {
-    outline: 2px solid rgba(139, 92, 246, 0.5);
-    outline-offset: 2px;
-    border-radius: 4px;
+    border: 2px solid var(--primary-foreground);
+    box-shadow: 0 0 8px var(--ring);
 }

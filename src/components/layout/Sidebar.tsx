@@ -12,6 +12,7 @@ import {
     IconChevronLeft,
     IconChevronRight,
 } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
     label: string;
@@ -41,6 +42,51 @@ interface SidebarProps {
     onToggle: () => void;
 }
 
+function NavLink({
+    item,
+    collapsed,
+    isActive,
+}: {
+    item: NavItem;
+    collapsed: boolean;
+    isActive: boolean;
+}) {
+    return (
+        <Link
+            to={item.path}
+            title={item.label}
+            className={cn(
+                "relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200",
+                collapsed && "justify-center",
+                isActive
+                    ? "bg-primary/15 text-violet-300"
+                    : "text-white/50 hover:bg-white/5 hover:text-white/80",
+            )}
+        >
+            {isActive && (
+                <motion.div
+                    layoutId="activeIndicator"
+                    className="absolute top-1/2 left-0 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-linear-to-b from-violet-400 to-fuchsia-400"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+            )}
+            <span className="shrink-0">{item.icon}</span>
+            <AnimatePresence>
+                {!collapsed && (
+                    <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="overflow-hidden text-sm font-medium whitespace-nowrap"
+                    >
+                        {item.label}
+                    </motion.span>
+                )}
+            </AnimatePresence>
+        </Link>
+    );
+}
+
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     const location = useLocation();
     const sidebarWidth = collapsed ? 72 : 240;
@@ -50,14 +96,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             initial={false}
             animate={{ width: sidebarWidth }}
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed left-0 top-10 bottom-0 z-50 flex flex-col border-r border-white/5"
-            style={{
-                background:
-                    "linear-gradient(180deg, #0f0a1e 0%, #130d24 50%, #0f0a1e 100%)",
-            }}
+            className="bg-sidebar-panel fixed top-10 bottom-0 left-0 z-50 flex flex-col border-r border-sidebar-border"
         >
-            {/* Profile section */}
-            <div className="flex flex-col items-center pt-6 pb-4 px-3">
+            <div className="flex flex-col items-center px-3 pt-6 pb-4">
                 <a
                     href="http://hassamdev.vercel.app/"
                     target="_blank"
@@ -65,14 +106,17 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                     className="group"
                 >
                     <div
-                        className={`rounded-full bg-linear-to-br from-violet-500 via-fuchsia-500 to-cyan-400 
-                        flex items-center justify-center shadow-lg shadow-violet-500/20
-                        group-hover:shadow-violet-500/40 transition-all duration-300
-                        ${collapsed ? "w-10 h-10" : "w-16 h-16"}`}
+                        className={cn(
+                            "flex items-center justify-center rounded-full bg-linear-to-br from-violet-500 via-fuchsia-500 to-cyan-400",
+                            "shadow-lg shadow-violet-500/20 transition-all duration-300 group-hover:shadow-violet-500/40",
+                            collapsed ? "h-10 w-10" : "h-16 w-16",
+                        )}
                     >
                         <span
-                            className={`font-black text-white group-hover:scale-110 transition-transform
-                            ${collapsed ? "text-sm" : "text-2xl"}`}
+                            className={cn(
+                                "font-black text-white transition-transform group-hover:scale-110",
+                                collapsed ? "text-sm" : "text-2xl",
+                            )}
                         >
                             Z
                         </span>
@@ -84,122 +128,45 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mt-3 text-center overflow-hidden"
+                            className="mt-3 overflow-hidden text-center"
                         >
                             <p className="text-sm font-semibold text-white/90">
                                 ZuriHZ
                             </p>
-                            <p className="text-xs text-white/40">
-                                Electron App
-                            </p>
+                            <p className="text-xs text-white/40">Electron App</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
 
-            {/* Separator */}
-            <div className="mx-4 h-px bg-linear-to-r from-transparent via-violet-500/20 to-transparent" />
+            <div className="mx-4 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
-            {/* Nav items */}
-            <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            title={item.label}
-                            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-                                ${collapsed ? "justify-center" : ""}
-                                ${
-                                    isActive
-                                        ? "bg-violet-500/15 text-violet-300"
-                                        : "text-white/50 hover:text-white/80 hover:bg-white/5"
-                                }`}
-                        >
-                            {/* Active indicator */}
-                            {isActive && (
-                                <motion.div
-                                    layoutId="activeIndicator"
-                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-linear-to-b from-violet-400 to-fuchsia-400"
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 380,
-                                        damping: 30,
-                                    }}
-                                />
-                            )}
-                            <span className="shrink-0">{item.icon}</span>
-                            <AnimatePresence>
-                                {!collapsed && (
-                                    <motion.span
-                                        initial={{ opacity: 0, width: 0 }}
-                                        animate={{ opacity: 1, width: "auto" }}
-                                        exit={{ opacity: 0, width: 0 }}
-                                        className="text-sm font-medium whitespace-nowrap overflow-hidden"
-                                    >
-                                        {item.label}
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                        </Link>
-                    );
-                })}
+            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
+                {navItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        item={item}
+                        collapsed={collapsed}
+                        isActive={location.pathname === item.path}
+                    />
+                ))}
             </nav>
 
-            {/* Separator */}
-            <div className="mx-4 h-px bg-linear-to-r from-transparent via-violet-500/20 to-transparent" />
+            <div className="mx-4 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
-            {/* Bottom items */}
-            <div className="px-3 py-3 flex flex-col gap-1">
-                {bottomItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            title={item.label}
-                            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-                                ${collapsed ? "justify-center" : ""}
-                                ${
-                                    isActive
-                                        ? "bg-violet-500/15 text-violet-300"
-                                        : "text-white/50 hover:text-white/80 hover:bg-white/5"
-                                }`}
-                        >
-                            {isActive && (
-                                <motion.div
-                                    layoutId="activeIndicator"
-                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-linear-to-b from-violet-400 to-fuchsia-400"
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 380,
-                                        damping: 30,
-                                    }}
-                                />
-                            )}
-                            <span className="shrink-0">{item.icon}</span>
-                            <AnimatePresence>
-                                {!collapsed && (
-                                    <motion.span
-                                        initial={{ opacity: 0, width: 0 }}
-                                        animate={{ opacity: 1, width: "auto" }}
-                                        exit={{ opacity: 0, width: 0 }}
-                                        className="text-sm font-medium whitespace-nowrap overflow-hidden"
-                                    >
-                                        {item.label}
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                        </Link>
-                    );
-                })}
+            <div className="flex flex-col gap-1 px-3 py-3">
+                {bottomItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        item={item}
+                        collapsed={collapsed}
+                        isActive={location.pathname === item.path}
+                    />
+                ))}
 
-                {/* Toggle button */}
                 <button
                     onClick={onToggle}
-                    className="flex items-center justify-center gap-2 mt-2 py-2 rounded-xl 
-                        text-white/30 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
+                    className="mt-2 flex items-center justify-center gap-2 rounded-xl py-2 text-white/30 transition-all duration-200 hover:bg-white/5 hover:text-white/60"
                     title={collapsed ? "Expandir" : "Colapsar"}
                 >
                     {collapsed ? (
