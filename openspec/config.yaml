@@ -1,0 +1,44 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Product: ZuriHZ (package: zuri) — desktop Electron practice app
+  Tech stack: Electron 33 + React 19 + Vite 6 + TypeScript + Tailwind CSS 4 + react-router-dom 7 (HashRouter)
+  Main process: electron/main.js (single frameless BrowserWindow, contextIsolation, sandbox, preload)
+  Preload: electron/preload.js (electronAPI: theme + window controls; isElectron flag)
+  Renderer: src/ (Vite root), alias @ → src; pages: home, config, noticias, blog, features, musica, extras
+  UI: TitleBar + Sidebar + Footer; MagicUI/shadcn-style components; framer-motion/motion; Tabler/Lucide icons
+  Build: vite build → dist/; electron-builder → release/ (NSIS/DMG/AppImage); appId placeholder com.tuempresa.tuapp
+  Testing: none configured | Lint: standard (devDep) | Package managers: npm lock + pnpm lock present
+  Auth: none | Backend/GitHub integration: none yet
+  Conventions: mixed JSX/TSX; no feature folders yet; routes defined inline in App.jsx (src/routes/routes.tsx empty)
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules (electron main/preload vs renderer src/)
+    - Call out security implications for any IPC or nodeIntegration changes
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for IPC and multi-window flows
+    - Document architecture decisions with rationale
+    - Prefer contextIsolation + sandbox; never enable nodeIntegration in renderer
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Load relevant coding skills: react-19, typescript, tailwind-4, zod-4
+    tdd: false
+    test_command: ""
+  verify:
+    - Compare implementation against every spec scenario
+    - Smoke-check dev (npm run dev) and build (npm run build) when touching shell or bundling
+    test_command: ""
+    build_command: "npm run build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas (large removals)

@@ -1,0 +1,15 @@
+change: github-prs
+mode: openspec
+phase: tasks
+artifacts:
+  proposal: done
+  specs: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+updated_at: "2026-08-24"
+notes: |
+  Scope lock: ONLY in-app GitHub PRs. No multi-window manager.
+  Auth: Device Flow + safeStorage in main. openExternal allowlisted.

@@ -22,28 +22,29 @@ const Musica = () => {
     const lastIndexRef = useRef<number | null>(null);
     const pendingSeekRef = useRef<number | null>(null);
     const blobUrlsRef = useRef<Map<string, string>>(new Map());
+    const loadIdRef = useRef(0);
 
     // Crear Blob URL a partir del archivo local (soporta seek)
-    const createBlobUrl = async (filePath: string): Promise<string | null> => {
+    const createBlobUrl = async (filePath: string): Promise<{ blobUrl: string; metadata: { title: string; artist?: string; album?: string; cover?: string; duration?: number } } | null> => {
         if (blobUrlsRef.current.has(filePath)) {
-            return blobUrlsRef.current.get(filePath)!;
+            return { blobUrl: blobUrlsRef.current.get(filePath)!, metadata: { title: playlist.find(s => s.filePath === filePath)?.title || "" } };
         }
         try {
-            const buffer = await (window as any).electronAPI.getAudioData(filePath);
-            if (!buffer) return null;
-            const uint8 = new Uint8Array(buffer);
+            const result = await (window as any).electronAPI.getAudioData(filePath);
+            if (!result || !result.buffer) return null;
+            const uint8 = new Uint8Array(result.buffer);
             const ext = filePath.split(".").pop()?.toLowerCase() || "mp3";
             const mime = { mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", m4a: "audio/mp4" }[ext] || "audio/mpeg";
             const blob = new Blob([uint8], { type: mime });
             const url = URL.createObjectURL(blob);
             blobUrlsRef.current.set(filePath, url);
-            return url;
+            return { blobUrl: url, metadata: result.metadata };
         } catch (error) {
             return null;
         }
     };
 
-    // Limpiar Blob URLs cuando seelimina una canción
+    // Limpiar Blob URLs cuando se elimina una canción
     const cleanupBlobUrl = (filePath: string) => {
         const url = blobUrlsRef.current.get(filePath);
         if (url) {
@@ -106,10 +107,16 @@ const Musica = () => {
         if (songChanged) {
             lastIndexRef.current = currentIndex;
             setCurrentTime(0);
-            createBlobUrl(currentSong.filePath).then((blobUrl) => {
-                if (blobUrl && audioRef.current) {
-                    audioRef.current.src = blobUrl;
+            const currentLoadId = ++loadIdRef.current;
+            createBlobUrl(currentSong.filePath).then((result) => {
+                if (currentLoadId !== loadIdRef.current) return;
+                if (result && audioRef.current) {
+                    audioRef.current.src = result.blobUrl;
                     audioRef.current.load();
+                    if (result.metadata) {
+                        const { updateSongMetadata } = usePlayerStore.getState();
+                        updateSongMetadata(currentIndex, result.metadata);
+                    }
                 }
             });
         } else {
@@ -139,8 +146,6 @@ const Musica = () => {
         try {
             const files = await (window as any).electronAPI.selectMusicFiles();
             if (files && files.length > 0) {
-                // Si querés agregar a la cola sin borrar lo anterior, podrías hacer setPlaylist([...playlist, ...files])
-                // Por ahora reemplazamos la lista.
                 addSongs(files);
             }
         } catch (error) {
@@ -239,7 +244,7 @@ const Musica = () => {
                             {/* Song info */}
                             <div className="text-center">
                                 <h2 className="text-xl font-bold text-white/90 truncate max-w-sm">{currentSong?.title}</h2>
-                                <p className="text-sm text-white/40">Desconocido</p>
+                                <p className="text-sm text-white/40">{currentSong?.artist || "Desconocido"}</p>
                             </div>
 
                             {/* Progress bar */}
@@ -277,7 +282,7 @@ const Musica = () => {
                                 </button>
                                 <button
                                     onClick={playPrev}
-                                    disabled={currentIndex === 0}
+                                    disabled={currentIndex === 0 || isShuffle}
                                     className="p-2.5 rounded-full text-white/50 hover:text-white hover:bg-white/10 
                                         transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
                                 >
@@ -288,7 +293,7 @@ const Musica = () => {
                                 </button>
                                 <button
                                     onClick={playNext}
-                                    disabled={currentIndex === playlist.length - 1}
+                                    disabled={currentIndex === playlist.length - 1 && !isRepeat && !isShuffle}
                                     className="p-2.5 rounded-full text-white/50 hover:text-white hover:bg-white/10 
                                         transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
                                 >
@@ -367,8 +372,11 @@ const Musica = () => {
                                     )}
                                     <div className="text-left flex-1 truncate">
                                         <div className="text-sm font-medium truncate">{song.title}</div>
-                                        <div className="text-xs text-white/30">Desconocido</div>
+                                        <div className="text-xs text-white/30">{song.artist || "Desconocido"}</div>
                                     </div>
+                                    {song.duration ? (
+                                        <span className="text-xs text-white/20 font-mono">{formatTime(song.duration)}</span>
+                                    ) : null}
                                     <div
                                         role="button"
                                         tabIndex={0}

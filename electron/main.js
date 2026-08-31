@@ -1,11 +1,8 @@
-const { app, BrowserWindow, Menu, ipcMain, dialog, protocol, net } = require("electron");
-const { pathToFileURL } = require("url");
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require("electron");
 const path = require("path");
 
-// Función para no repetir el formateo de las canciones
 function formatSongPath(filePath) {
     return {
-        src: pathToFileURL(filePath).href.replace("file://", "local-audio://"),
         filePath: filePath,
         title: filePath
             .split(/[\\/]/)
@@ -91,26 +88,7 @@ function createWindow() {
     // Menú personalizado y resto de la función
 }
 
-// Registramos el protocolo con privilegios ANTES de que la app esté lista
-protocol.registerSchemesAsPrivileged([
-    {
-        scheme: "local-audio",
-        privileges: {
-            secure: true,
-            supportFetchAPI: true,
-            bypassCSP: true,
-            stream: true, // ¡Este es el que hace que la etiqueta <audio> funcione!
-        },
-    },
-]);
-
 app.whenReady().then(() => {
-    protocol.handle("local-audio", (request) => {
-        // La URL viene perfecta, solo le devolvemos su prefijo 'file://' original
-        const fileUrl = request.url.replace("local-audio://", "file://");
-        return net.fetch(fileUrl);
-    });
-
     createWindow();
 });
 
@@ -142,12 +120,28 @@ ipcMain.handle("process-dropped-files", async (event, filePaths) => {
     return validPaths.map(formatSongPath);
 });
 
-// Leer archivo de audio como buffer para crear Blob URL (soporta seek)
+// Leer archivo de audio como buffer + metadata ID3
 ipcMain.handle("get-audio-data", async (event, filePath) => {
-    const fs = require("fs");
+    const fs = require("fs").promises;
     try {
-        const buffer = fs.readFileSync(filePath);
-        return buffer;
+        const buffer = await fs.readFile(filePath);
+        let metadata = { title: filePath.split(/[\\/]/).pop().replace(/\.[^/.]+$/, ""), artist: undefined, album: undefined, cover: undefined, duration: undefined };
+        try {
+            const mm = await import("music-metadata");
+            const parsed = await mm.parseBuffer(new Uint8Array(buffer), { duration: true });
+            if (parsed.common.title) metadata.title = parsed.common.title;
+            if (parsed.common.artist) metadata.artist = parsed.common.artist;
+            if (parsed.common.album) metadata.album = parsed.common.album;
+            if (parsed.format.duration) metadata.duration = parsed.format.duration;
+            if (parsed.common.picture && parsed.common.picture.length > 0) {
+                const pic = parsed.common.picture[0];
+                const base64 = Buffer.from(pic.data).toString("base64");
+                metadata.cover = `data:${pic.format};base64,${base64}`;
+            }
+        } catch (metaErr) {
+            console.warn("No se pudo extraer metadata:", metaErr.message);
+        }
+        return { buffer: Array.from(new Uint8Array(buffer)), metadata };
     } catch (error) {
         console.error("Error leyendo archivo:", filePath, error);
         return null;

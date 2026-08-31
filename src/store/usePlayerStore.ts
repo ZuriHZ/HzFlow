@@ -5,7 +5,10 @@ export interface Song {
     src: string;
     filePath: string;
     title: string;
+    artist?: string;
+    album?: string;
     cover?: string;
+    duration?: number;
 }
 
 interface PlayerStore {
@@ -27,6 +30,7 @@ interface PlayerStore {
     setVolume: (volume: number) => void;
     toggleShuffle: () => void;
     toggleRepeat: () => void;
+    updateSongMetadata: (index: number, metadata: { title?: string; artist?: string; album?: string; cover?: string; duration?: number }) => void;
 }
 
 export const usePlayerStore = create<PlayerStore>()(
@@ -104,6 +108,15 @@ export const usePlayerStore = create<PlayerStore>()(
             setVolume: (volume) => set({ volume }),
             toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
             toggleRepeat: () => set((state) => ({ isRepeat: !state.isRepeat })),
+
+            updateSongMetadata: (index, metadata) =>
+                set((state) => {
+                    const newPlaylist = [...state.playlist];
+                    if (newPlaylist[index]) {
+                        newPlaylist[index] = { ...newPlaylist[index], ...metadata };
+                    }
+                    return { playlist: newPlaylist };
+                }),
         }),
         {
             name: "mi-reproductor-storage",

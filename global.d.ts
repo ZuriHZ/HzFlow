@@ -4,6 +4,11 @@ declare interface Window {
 }
 
 interface ElectronAPI {
-    selectMusicFiles: () => Promise<{ src: string; title: string }[]>;
-    // ... tus métodos existentes
+    selectMusicFiles: () => Promise<{ filePath: string; title: string }[]>;
+    processDroppedFiles: (filePaths: string[]) => Promise<{ filePath: string; title: string }[]>;
+    getAudioData: (filePath: string) => Promise<number[] | null>;
+    minimize: () => void;
+    maximize: () => void;
+    close: () => void;
+    toggleDevTools: () => void;
 }
