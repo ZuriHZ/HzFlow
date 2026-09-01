@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext, IconPlayerTrackPrev, IconVolume, IconFolderPlus, IconMusic,     IconArrowsShuffle, IconRepeat, IconTrash, IconX } from "@tabler/icons-react";
+import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext, IconPlayerTrackPrev, IconVolume, IconFolderPlus, IconMusic, IconArrowsShuffle, IconRepeat, IconTrash, IconX, IconSearch } from "@tabler/icons-react";
 import { usePlayerStore } from "../store/usePlayerStore";
+import { useAudioPlayer } from "../hooks/useAudioPlayer";
 
 const formatTime = (time: number) => {
     if (!isFinite(time) || isNaN(time)) return "0:00";
@@ -11,140 +12,23 @@ const formatTime = (time: number) => {
 };
 
 const Musica = () => {
-    const { playlist, currentIndex, isPlaying, volume, isShuffle, isRepeat, addSongs, playSong, playNext, playPrev, togglePlay, setIsPlaying, toggleShuffle, toggleRepeat, setVolume, removeSong, clearPlaylist } = usePlayerStore();
+    const { playlist, currentIndex, isPlaying, volume, isShuffle, isRepeat, addSongs, playSong, playNext, playPrev, togglePlay, toggleShuffle, toggleRepeat, setVolume, removeSong, clearPlaylist } = usePlayerStore();
 
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [isDraggingTime, setIsDraggingTime] = useState(false);
+    const { currentTime, duration, progress, isDraggingTime, setIsDraggingTime, currentSong, handleTimeInput, handleSeekCommit, handleTimeUpdate, handleLoadedMetadata, cleanupBlobUrl } = useAudioPlayer();
+
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const audioRef = useRef<HTMLAudioElement>(null);
-    const seekTimeRef = useRef(0);
-    const lastIndexRef = useRef<number | null>(null);
-    const pendingSeekRef = useRef<number | null>(null);
-    const blobUrlsRef = useRef<Map<string, string>>(new Map());
-    const loadIdRef = useRef(0);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showRemaining, setShowRemaining] = useState(false);
 
-    // Crear Blob URL a partir del archivo local (soporta seek)
-    const createBlobUrl = async (filePath: string): Promise<{ blobUrl: string; metadata: { title: string; artist?: string; album?: string; cover?: string; duration?: number } } | null> => {
-        if (blobUrlsRef.current.has(filePath)) {
-            return { blobUrl: blobUrlsRef.current.get(filePath)!, metadata: { title: playlist.find(s => s.filePath === filePath)?.title || "" } };
-        }
-        try {
-            const result = await (window as any).electronAPI.getAudioData(filePath);
-            if (!result || !result.buffer) return null;
-            const uint8 = new Uint8Array(result.buffer);
-            const ext = filePath.split(".").pop()?.toLowerCase() || "mp3";
-            const mime = { mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", m4a: "audio/mp4" }[ext] || "audio/mpeg";
-            const blob = new Blob([uint8], { type: mime });
-            const url = URL.createObjectURL(blob);
-            blobUrlsRef.current.set(filePath, url);
-            return { blobUrl: url, metadata: result.metadata };
-        } catch (error) {
-            return null;
-        }
-    };
-
-    // Limpiar Blob URLs cuando se elimina una canción
-    const cleanupBlobUrl = (filePath: string) => {
-        const url = blobUrlsRef.current.get(filePath);
-        if (url) {
-            URL.revokeObjectURL(url);
-            blobUrlsRef.current.delete(filePath);
-        }
-    };
-
-    // Escuchar mouseup/touchend en window para soltar el seek aunque el mouse salga del input
-    useEffect(() => {
-        const handleGlobalUp = () => {
-            if (isDraggingTime) {
-                setIsDraggingTime(false);
-                if (audioRef.current) {
-                    const ready = audioRef.current.readyState;
-                    const canSeek = ready >= 3;
-                    if (canSeek) {
-                        audioRef.current.currentTime = seekTimeRef.current;
-                    } else {
-                        pendingSeekRef.current = seekTimeRef.current;
-                    }
-                }
-            }
-        };
-        window.addEventListener("mouseup", handleGlobalUp);
-        window.addEventListener("touchend", handleGlobalUp);
-        return () => {
-            window.removeEventListener("mouseup", handleGlobalUp);
-            window.removeEventListener("touchend", handleGlobalUp);
-        };
-    }, [isDraggingTime]);
-
-    // Limpiar todas las Blob URLs al desmontar
-    useEffect(() => {
-        return () => {
-            blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
-            blobUrlsRef.current.clear();
-        };
-    }, []);
-
-    const currentSong = playlist[currentIndex];
-
-    // Sincronizar el audio element con el estado global (usando Blob URLs)
-    useEffect(() => {
-        if (!audioRef.current || !currentSong) {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.src = "";
-                setCurrentTime(0);
-                setDuration(0);
-            }
-            lastIndexRef.current = null;
-            return;
-        }
-
-        audioRef.current.volume = volume;
-
-        const songChanged = lastIndexRef.current !== currentIndex;
-
-        if (songChanged) {
-            lastIndexRef.current = currentIndex;
-            setCurrentTime(0);
-            const currentLoadId = ++loadIdRef.current;
-            createBlobUrl(currentSong.filePath).then((result) => {
-                if (currentLoadId !== loadIdRef.current) return;
-                if (result && audioRef.current) {
-                    audioRef.current.src = result.blobUrl;
-                    audioRef.current.load();
-                    if (result.metadata) {
-                        const { updateSongMetadata } = usePlayerStore.getState();
-                        updateSongMetadata(currentIndex, result.metadata);
-                    }
-                }
-            });
-        } else {
-            if (isPlaying && audioRef.current.paused) {
-                audioRef.current.play().catch(console.error);
-            } else if (!isPlaying && !audioRef.current.paused) {
-                audioRef.current.pause();
-            }
-        }
-    }, [currentIndex, isPlaying, currentSong]);
-
-    // Sincronizar volumen en tiempo real
-    useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.volume = volume;
-        }
-    }, [volume]);
-
-    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!audioRef.current) return;
-        const time = Number(e.target.value);
-        audioRef.current.currentTime = time;
-        setCurrentTime(time);
-    };
+    const filteredPlaylist = useMemo(() => {
+        if (!searchQuery.trim()) return playlist;
+        const query = searchQuery.toLowerCase();
+        return playlist.filter((song) => song.title.toLowerCase().includes(query) || (song.artist && song.artist.toLowerCase().includes(query)) || (song.album && song.album.toLowerCase().includes(query)));
+    }, [playlist, searchQuery]);
 
     const handleSelectFiles = async () => {
         try {
-            const files = await (window as any).electronAPI.selectMusicFiles();
+            const files = await window.electronAPI.selectMusicFiles();
             if (files && files.length > 0) {
                 addSongs(files);
             }
@@ -159,10 +43,10 @@ const Musica = () => {
         setIsDraggingOver(false);
         // Electron inyecta una propiedad 'path' en los File objects
         const files = Array.from(e.dataTransfer.files);
-        const paths = files.map((f: any) => f.path).filter(Boolean);
+        const paths = files.map((f) => (f as File & { path?: string }).path).filter(Boolean) as string[];
         if (paths.length > 0) {
             try {
-                const newSongs = await (window as any).electronAPI.processDroppedFiles(paths);
+                const newSongs = await window.electronAPI.processDroppedFiles(paths);
                 if (newSongs && newSongs.length > 0) {
                     addSongs(newSongs);
                 }
@@ -183,13 +67,14 @@ const Musica = () => {
         clearPlaylist();
     };
 
-    const progress = duration > 0 && isFinite(duration) ? (currentTime / duration) * 100 : 0;
-
     return (
-        <div 
+        <div
             className={`max-w-4xl mx-auto w-full space-y-6 transition-colors duration-300 rounded-2xl p-4
                 ${isDraggingOver ? "bg-violet-500/10 border-2 border-dashed border-violet-500" : "border-2 border-transparent"}`}
-            onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true); }}
+            onDragOver={(e) => {
+                e.preventDefault();
+                setIsDraggingOver(true);
+            }}
             onDragLeave={() => setIsDraggingOver(false)}
             onDrop={handleDrop}
         >
@@ -249,7 +134,9 @@ const Musica = () => {
 
                             {/* Progress bar */}
                             <div className="w-full max-w-md flex items-center gap-3">
-                                <span className="text-xs text-white/30 font-mono w-10 text-right">{formatTime(currentTime)}</span>
+                                <button onClick={() => setShowRemaining(!showRemaining)} className="text-xs text-white/30 font-mono w-10 text-right hover:text-white/60 transition-colors cursor-pointer" title={showRemaining ? "Mostrar tiempo transcurrido" : "Mostrar tiempo restante"}>
+                                    {showRemaining ? `-${formatTime(duration - currentTime)}` : formatTime(currentTime)}
+                                </button>
                                 <div className="relative flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                                     <div className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500" style={{ width: `${progress}%` }} />
                                     <input
@@ -257,13 +144,11 @@ const Musica = () => {
                                         min="0"
                                         max={duration || 0}
                                         value={currentTime}
-                                        onInput={(e) => {
-                                            const val = Number((e.target as HTMLInputElement).value);
-                                            setCurrentTime(val);
-                                            seekTimeRef.current = val;
-                                        }}
+                                        onInput={(e) => handleTimeInput(Number((e.target as HTMLInputElement).value))}
                                         onMouseDown={() => setIsDraggingTime(true)}
                                         onTouchStart={() => setIsDraggingTime(true)}
+                                        onMouseUp={handleSeekCommit}
+                                        onTouchEnd={handleSeekCommit}
                                         className="absolute inset-0 w-full opacity-0 cursor-pointer"
                                     />
                                 </div>
@@ -272,12 +157,7 @@ const Musica = () => {
 
                             {/* Controls */}
                             <div className="flex items-center gap-6">
-                                <button
-                                    onClick={toggleShuffle}
-                                    className={`p-2 rounded-full transition-colors cursor-pointer ${
-                                        isShuffle ? "text-violet-400 bg-violet-400/10" : "text-white/30 hover:text-white/60"
-                                    }`}
-                                >
+                                <button onClick={toggleShuffle} className={`p-2 rounded-full transition-colors cursor-pointer ${isShuffle ? "text-violet-400 bg-violet-400/10" : "text-white/30 hover:text-white/60"}`}>
                                     <IconArrowsShuffle size={20} />
                                 </button>
                                 <button
@@ -299,12 +179,7 @@ const Musica = () => {
                                 >
                                     <IconPlayerTrackNext size={22} />
                                 </button>
-                                <button
-                                    onClick={toggleRepeat}
-                                    className={`p-2 rounded-full transition-colors cursor-pointer ${
-                                        isRepeat ? "text-violet-400 bg-violet-400/10" : "text-white/30 hover:text-white/60"
-                                    }`}
-                                >
+                                <button onClick={toggleRepeat} className={`p-2 rounded-full transition-colors cursor-pointer ${isRepeat ? "text-violet-400 bg-violet-400/10" : "text-white/30 hover:text-white/60"}`}>
                                     <IconRepeat size={20} />
                                 </button>
                             </div>
@@ -323,89 +198,89 @@ const Musica = () => {
                         <div className="absolute top-0 right-0 w-64 h-64 bg-violet-600/20 rounded-full blur-[100px] pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-48 h-48 bg-fuchsia-600/10 rounded-full blur-[80px] pointer-events-none" />
 
-                        <audio
-                            ref={audioRef}
-                            onTimeUpdate={() => {
-                                if (audioRef.current && !isDraggingTime) {
-                                    const t = audioRef.current.currentTime;
-                                    if (isFinite(t) && !isNaN(t)) {
-                                        setCurrentTime(t);
-                                    }
-                                }
-                            }}
-                            onLoadedMetadata={() => {
-                                if (audioRef.current) {
-                                    const d = audioRef.current.duration;
-                                    setDuration(isFinite(d) && !isNaN(d) ? d : 0);
-                                    if (pendingSeekRef.current !== null) {
-                                        audioRef.current.currentTime = pendingSeekRef.current;
-                                        pendingSeekRef.current = null;
-                                    }
-                                    if (isPlaying) {
-                                        audioRef.current.play().catch(console.error);
-                                    }
-                                }
-                            }}
-                            onEnded={playNext}
-                            onPlay={() => setIsPlaying(true)}
-                            onPause={() => setIsPlaying(false)}
-                        />
                     </motion.div>
 
                     {/* Playlist */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="space-y-2">
-                        <h3 className="text-sm font-semibold text-white/50 px-1">Lista de reproducción</h3>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-white/50 px-1">Lista de reproducción</h3>
+                            {playlist.length > 3 && (
+                                <div className="relative">
+                                    <IconSearch size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-7 pr-2 py-1 text-xs bg-white/5 border border-white/10 rounded-lg text-white/70 placeholder-white/30 focus:outline-none focus:border-violet-500/50 w-36"
+                                    />
+                                </div>
+                            )}
+                        </div>
                         <div className="flex flex-col gap-1 max-h-75 overflow-y-auto pr-2 custom-scrollbar">
-                            {playlist.map((song, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => playSong(i)}
-                                    className={`group flex items-center gap-4 p-3 rounded-xl transition-all duration-200 cursor-pointer
-                                        ${i === currentIndex ? "bg-violet-500/15 text-white" : "text-white/50 hover:bg-white/5 hover:text-white/70"}`}
-                                >
-                                    {song.cover ? (
-                                        <img src={song.cover} alt={song.title} className="w-10 h-10 rounded-lg object-cover" />
-                                    ) : (
-                                        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-                                            <IconMusic size={16} className="text-white/30" />
-                                        </div>
-                                    )}
-                                    <div className="text-left flex-1 truncate">
-                                        <div className="text-sm font-medium truncate">{song.title}</div>
-                                        <div className="text-xs text-white/30">{song.artist || "Desconocido"}</div>
-                                    </div>
-                                    {song.duration ? (
-                                        <span className="text-xs text-white/20 font-mono">{formatTime(song.duration)}</span>
-                                    ) : null}
-                                    <div
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={(e) => { e.stopPropagation(); handleRemoveSong(i); }}
-                                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); handleRemoveSong(i); } }}
-                                        className="p-1 rounded-full text-white/20 hover:text-red-400 hover:bg-red-400/10 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
-                                    >
-                                        <IconX size={14} />
-                                    </div>
-                                    {i === currentIndex && isPlaying && (
-                                        <div className="flex gap-0.5 items-end h-4">
-                                            {[1, 2, 3].map((bar) => (
-                                                <motion.div
-                                                    key={bar}
-                                                    animate={{
-                                                        height: ["40%", "100%", "40%"],
-                                                    }}
-                                                    transition={{
-                                                        duration: 0.8,
-                                                        repeat: Infinity,
-                                                        delay: bar * 0.15,
-                                                    }}
-                                                    className="w-0.5 bg-violet-400 rounded-full"
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
+                            {filteredPlaylist.length === 0 ? (
+                                <p className="text-white/30 text-sm text-center py-4">{searchQuery ? "No se encontraron resultados" : "No hay canciones"}</p>
+                            ) : (
+                                filteredPlaylist.map((song, i) => {
+                                    const realIndex = playlist.indexOf(song);
+                                    return (
+                                        <button
+                                            key={realIndex}
+                                            onClick={() => playSong(realIndex)}
+                                            className={`group flex items-center gap-4 p-3 rounded-xl transition-all duration-200 cursor-pointer
+                                                ${realIndex === currentIndex ? "bg-violet-500/15 text-white" : "text-white/50 hover:bg-white/5 hover:text-white/70"}`}
+                                        >
+                                            {song.cover ? (
+                                                <img src={song.cover} alt={song.title} className="w-10 h-10 rounded-lg object-cover" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
+                                                    <IconMusic size={16} className="text-white/30" />
+                                                </div>
+                                            )}
+                                            <div className="text-left flex-1 truncate">
+                                                <div className="text-sm font-medium truncate">{song.title}</div>
+                                                <div className="text-xs text-white/30">{song.artist || "Desconocido"}</div>
+                                            </div>
+                                            {song.duration ? <span className="text-xs text-white/20 font-mono">{formatTime(song.duration)}</span> : null}
+                                            <div
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveSong(i);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" || e.key === " ") {
+                                                        e.stopPropagation();
+                                                        handleRemoveSong(i);
+                                                    }
+                                                }}
+                                                className="p-1 rounded-full text-white/20 hover:text-red-400 hover:bg-red-400/10 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                                            >
+                                                <IconX size={14} />
+                                            </div>
+                                            {i === currentIndex && isPlaying && (
+                                                <div className="flex gap-0.5 items-end h-4">
+                                                    {[1, 2, 3].map((bar) => (
+                                                        <motion.div
+                                                            key={bar}
+                                                            animate={{
+                                                                height: ["40%", "100%", "40%"],
+                                                            }}
+                                                            transition={{
+                                                                duration: 0.8,
+                                                                repeat: Infinity,
+                                                                delay: bar * 0.15,
+                                                            }}
+                                                            className="w-0.5 bg-violet-400 rounded-full"
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })
+                            )}
                         </div>
                     </motion.div>
                 </>

@@ -3,6 +3,7 @@ const path = require("path");
 
 function formatSongPath(filePath) {
     return {
+        src: filePath,
         filePath: filePath,
         title: filePath
             .split(/[\\/]/)
