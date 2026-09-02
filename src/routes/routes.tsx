@@ -34,7 +34,7 @@ export function MyRoutes() {
                     <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((p) => !p)} />
 
                     <main className="flex min-h-[calc(100vh-2.5rem)] flex-1 flex-col transition-all duration-300" style={{ marginLeft: sidebarWidth }}>
-                        <div className="flex-1 p-6 pb-20">
+                        <div className="flex-1 p-6">
                             <Routes>
                                 <Route path="/" element={<Home />} />
                                 <Route path="/config" element={<Config />} />
