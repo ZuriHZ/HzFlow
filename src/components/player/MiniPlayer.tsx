@@ -25,8 +25,13 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
     const { playlist, currentIndex, isPlaying, playPrev, playNext } = usePlayerStore();
     const [expanded, setExpanded] = React.useState(false);
     const currentSong = playlist[currentIndex];
+    const dragRef = React.useRef({ startX: 0, startY: 0, moved: false });
 
     if (playlist.length === 0) return null;
+
+    const handleClick = (fn: () => void) => () => {
+        if (!dragRef.current.moved) fn();
+    };
 
     return (
         <AnimatePresence>
@@ -35,6 +40,14 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
                     drag
                     dragMomentum={false}
                     dragElastic={0}
+                    onDragStart={(_, info) => {
+                        dragRef.current = { startX: info.point.x, startY: info.point.y, moved: false };
+                    }}
+                    onDrag={(_, info) => {
+                        const dx = Math.abs(info.point.x - dragRef.current.startX);
+                        const dy = Math.abs(info.point.y - dragRef.current.startY);
+                        if (dx > 5 || dy > 5) dragRef.current.moved = true;
+                    }}
                     initial={{ opacity: 0, scale: 0.8, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -49,7 +62,7 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
                     {/* Main row */}
                     <div className="flex items-center gap-2.5 px-3 h-14">
                         {/* Cover */}
-                        <button onClick={() => navigate("/musica")} className="flex-shrink-0 cursor-pointer">
+                        <button onClick={handleClick(() => navigate("/musica"))} className="flex-shrink-0 cursor-pointer">
                             {currentSong?.cover ? (
                                 <img src={currentSong.cover} alt="" className="w-9 h-9 rounded-lg object-cover" />
                             ) : (
@@ -60,20 +73,20 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
                         </button>
 
                         {/* Info */}
-                        <button onClick={() => navigate("/musica")} className="flex-1 min-w-0 text-left cursor-pointer">
+                        <button onClick={handleClick(() => navigate("/musica"))} className="flex-1 min-w-0 text-left cursor-pointer">
                             <div className="text-xs font-medium text-white/90 truncate">{currentSong?.title || "Sin título"}</div>
                             <div className="text-[10px] text-white/40 truncate">{currentSong?.artist || "Desconocido"}</div>
                         </button>
 
                         {/* Controls */}
                         <div className="flex items-center gap-0.5">
-                            <button onClick={playPrev} className="p-1.5 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
+                            <button onClick={handleClick(playPrev)} className="p-1.5 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
                                 <IconPlayerTrackPrev size={14} />
                             </button>
-                            <button onClick={onTogglePlay} className="p-1.5 bg-violet-500/20 rounded-full text-violet-400 hover:bg-violet-500/30 transition-colors cursor-pointer">
+                            <button onClick={handleClick(onTogglePlay)} className="p-1.5 bg-violet-500/20 rounded-full text-violet-400 hover:bg-violet-500/30 transition-colors cursor-pointer">
                                 {isPlaying ? <IconPlayerPause size={14} /> : <IconPlayerPlay size={14} />}
                             </button>
-                            <button onClick={playNext} className="p-1.5 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
+                            <button onClick={handleClick(playNext)} className="p-1.5 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
                                 <IconPlayerTrackNext size={14} />
                             </button>
                         </div>
@@ -85,7 +98,7 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden border-t border-white/5">
                                 <div className="max-h-40 overflow-y-auto px-3 py-1.5 custom-scrollbar">
                                     {playlist.map((song, i) => (
-                                        <button key={i} onClick={() => usePlayerStore.getState().playSong(i)} className={`w-full flex items-center gap-2 p-1.5 rounded-lg text-left transition-colors cursor-pointer ${i === currentIndex ? "bg-violet-500/15 text-white" : "text-white/50 hover:bg-white/5"}`}>
+                                        <button key={i} onClick={handleClick(() => usePlayerStore.getState().playSong(i))} className={`w-full flex items-center gap-2 p-1.5 rounded-lg text-left transition-colors cursor-pointer ${i === currentIndex ? "bg-violet-500/15 text-white" : "text-white/50 hover:bg-white/5"}`}>
                                             <span className="text-[10px] font-mono w-4 text-right text-white/20">{i + 1}</span>
                                             <div className="flex-1 truncate text-xs">{song.title}</div>
                                             {song.duration && <span className="text-[10px] text-white/20 font-mono">{formatTime(song.duration)}</span>}
@@ -102,10 +115,10 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
                             {formatTime(currentTime)} / {formatTime(duration)}
                         </span>
                         <div className="flex items-center gap-0.5">
-                            <button onClick={() => setExpanded(!expanded)} className="p-1 text-white/30 hover:text-white/60 transition-colors cursor-pointer">
+                            <button onClick={handleClick(() => setExpanded(!expanded))} className="p-1 text-white/30 hover:text-white/60 transition-colors cursor-pointer">
                                 {expanded ? <IconChevronDown size={12} /> : <IconChevronUp size={12} />}
                             </button>
-                            <button onClick={onClose} className="p-1 text-white/30 hover:text-white/60 transition-colors cursor-pointer">
+                            <button onClick={handleClick(onClose)} className="p-1 text-white/30 hover:text-white/60 transition-colors cursor-pointer">
                                 <IconX size={12} />
                             </button>
                         </div>
