@@ -25,12 +25,13 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
     const { playlist, currentIndex, isPlaying, playPrev, playNext } = usePlayerStore();
     const [expanded, setExpanded] = React.useState(false);
     const currentSong = playlist[currentIndex];
-    const dragRef = React.useRef({ startX: 0, startY: 0, moved: false });
+    const didDrag = React.useRef(false);
 
     if (playlist.length === 0) return null;
 
     const handleClick = (fn: () => void) => () => {
-        if (!dragRef.current.moved) fn();
+        if (!didDrag.current) fn();
+        didDrag.current = false;
     };
 
     return (
@@ -40,13 +41,10 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
                     drag
                     dragMomentum={false}
                     dragElastic={0}
-                    onDragStart={(_, info) => {
-                        dragRef.current = { startX: info.point.x, startY: info.point.y, moved: false };
-                    }}
-                    onDrag={(_, info) => {
-                        const dx = Math.abs(info.point.x - dragRef.current.startX);
-                        const dy = Math.abs(info.point.y - dragRef.current.startY);
-                        if (dx > 5 || dy > 5) dragRef.current.moved = true;
+                    onDragStart={() => { didDrag.current = false; }}
+                    onDragEnd={(_, info) => {
+                        const dist = Math.sqrt(info.offset.x ** 2 + info.offset.y ** 2);
+                        if (dist > 10) didDrag.current = true;
                     }}
                     initial={{ opacity: 0, scale: 0.8, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
