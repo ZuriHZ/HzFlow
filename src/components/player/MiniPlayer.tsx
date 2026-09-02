@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext, IconPlayerTrackPrev, IconMusic, IconChevronUp, IconChevronDown } from "@tabler/icons-react";
+import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext, IconPlayerTrackPrev, IconMusic, IconX, IconChevronUp, IconChevronDown } from "@tabler/icons-react";
 import { usePlayerStore } from "@/store/usePlayerStore";
 
 const formatTime = (t: number) => {
@@ -16,88 +16,99 @@ interface MiniPlayerProps {
     duration: number;
     progress: number;
     onTogglePlay: () => void;
+    isVisible: boolean;
+    onClose: () => void;
 }
 
-export default function MiniPlayer({ currentTime, duration, progress, onTogglePlay }: MiniPlayerProps) {
+export default function MiniPlayer({ currentTime, duration, progress, onTogglePlay, isVisible, onClose }: MiniPlayerProps) {
     const navigate = useNavigate();
-    const { playlist, currentIndex, isPlaying, togglePlay, playPrev, playNext } = usePlayerStore();
-    const [expanded, setExpanded] = React.useState(() => localStorage.getItem("miniPlayerExpanded") !== "false");
+    const { playlist, currentIndex, isPlaying, playPrev, playNext } = usePlayerStore();
+    const [expanded, setExpanded] = React.useState(false);
     const currentSong = playlist[currentIndex];
 
     if (playlist.length === 0) return null;
 
-    const handleToggle = () => {
-        const next = !expanded;
-        setExpanded(next);
-        localStorage.setItem("miniPlayerExpanded", String(next));
-    };
-
     return (
-        <motion.div initial={{ y: 100 }} animate={{ y: 0 }} className="fixed bottom-0 left-0 right-0 z-50 bg-[#130d24]/95 backdrop-blur-xl border-t border-white/5">
-            {/* Progress bar */}
-            <div className="h-1 bg-white/5">
-                <div className="h-full bg-linear-to-r from-violet-500 to-fuchsia-500 transition-all" style={{ width: `${progress}%` }} />
-            </div>
+        <AnimatePresence>
+            {isVisible && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="fixed bottom-4 right-4 z-50 w-[280px] rounded-2xl bg-[#130d24]/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden"
+                >
+                    {/* Progress bar */}
+                    <div className="h-0.5 bg-white/5">
+                        <div className="h-full bg-linear-to-r from-violet-500 to-fuchsia-500 transition-all" style={{ width: `${progress}%` }} />
+                    </div>
 
-            {/* Collapsed bar */}
-            <div className="flex items-center gap-3 px-4 h-14">
-                {/* Cover */}
-                <button onClick={() => navigate("/musica")} className="flex-shrink-0 cursor-pointer">
-                    {currentSong?.cover ? (
-                        <img src={currentSong.cover} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                    ) : (
-                        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-                            <IconMusic size={18} className="text-white/30" />
+                    {/* Main row */}
+                    <div className="flex items-center gap-2.5 px-3 h-14">
+                        {/* Cover */}
+                        <button onClick={() => navigate("/musica")} className="flex-shrink-0 cursor-pointer">
+                            {currentSong?.cover ? (
+                                <img src={currentSong.cover} alt="" className="w-9 h-9 rounded-lg object-cover" />
+                            ) : (
+                                <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center">
+                                    <IconMusic size={16} className="text-white/30" />
+                                </div>
+                            )}
+                        </button>
+
+                        {/* Info */}
+                        <button onClick={() => navigate("/musica")} className="flex-1 min-w-0 text-left cursor-pointer">
+                            <div className="text-xs font-medium text-white/90 truncate">{currentSong?.title || "Sin título"}</div>
+                            <div className="text-[10px] text-white/40 truncate">{currentSong?.artist || "Desconocido"}</div>
+                        </button>
+
+                        {/* Controls */}
+                        <div className="flex items-center gap-0.5">
+                            <button onClick={playPrev} className="p-1.5 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
+                                <IconPlayerTrackPrev size={14} />
+                            </button>
+                            <button onClick={onTogglePlay} className="p-1.5 bg-violet-500/20 rounded-full text-violet-400 hover:bg-violet-500/30 transition-colors cursor-pointer">
+                                {isPlaying ? <IconPlayerPause size={14} /> : <IconPlayerPlay size={14} />}
+                            </button>
+                            <button onClick={playNext} className="p-1.5 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
+                                <IconPlayerTrackNext size={14} />
+                            </button>
                         </div>
-                    )}
-                </button>
+                    </div>
 
-                {/* Info */}
-                <button onClick={() => navigate("/musica")} className="flex-1 min-w-0 text-left cursor-pointer">
-                    <div className="text-sm font-medium text-white/90 truncate">{currentSong?.title || "Sin título"}</div>
-                    <div className="text-xs text-white/40 truncate">{currentSong?.artist || "Desconocido"}</div>
-                </button>
+                    {/* Expanded — song list */}
+                    <AnimatePresence>
+                        {expanded && (
+                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden border-t border-white/5">
+                                <div className="max-h-40 overflow-y-auto px-3 py-1.5 custom-scrollbar">
+                                    {playlist.map((song, i) => (
+                                        <button key={i} onClick={() => usePlayerStore.getState().playSong(i)} className={`w-full flex items-center gap-2 p-1.5 rounded-lg text-left transition-colors cursor-pointer ${i === currentIndex ? "bg-violet-500/15 text-white" : "text-white/50 hover:bg-white/5"}`}>
+                                            <span className="text-[10px] font-mono w-4 text-right text-white/20">{i + 1}</span>
+                                            <div className="flex-1 truncate text-xs">{song.title}</div>
+                                            {song.duration && <span className="text-[10px] text-white/20 font-mono">{formatTime(song.duration)}</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                {/* Controls */}
-                <div className="flex items-center gap-1">
-                    <button onClick={playPrev} className="p-2 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
-                        <IconPlayerTrackPrev size={18} />
-                    </button>
-                    <button onClick={onTogglePlay} className="p-2 bg-violet-500/20 rounded-full text-violet-400 hover:bg-violet-500/30 transition-colors cursor-pointer">
-                        {isPlaying ? <IconPlayerPause size={18} /> : <IconPlayerPlay size={18} />}
-                    </button>
-                    <button onClick={playNext} className="p-2 text-white/40 hover:text-white/70 transition-colors cursor-pointer">
-                        <IconPlayerTrackNext size={18} />
-                    </button>
-                </div>
-
-                {/* Time */}
-                <span className="text-xs text-white/30 font-mono w-20 text-right hidden sm:block">
-                    {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
-
-                {/* Expand */}
-                <button onClick={handleToggle} className="p-2 text-white/30 hover:text-white/60 transition-colors cursor-pointer">
-                    {expanded ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />}
-                </button>
-            </div>
-
-            {/* Expanded — song list */}
-            <AnimatePresence>
-                {expanded && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/5">
-                        <div className="max-h-48 overflow-y-auto px-4 py-2 custom-scrollbar">
-                            {playlist.map((song, i) => (
-                                <button key={i} onClick={() => usePlayerStore.getState().playSong(i)} className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors cursor-pointer ${i === currentIndex ? "bg-violet-500/15 text-white" : "text-white/50 hover:bg-white/5"}`}>
-                                    <span className="text-xs font-mono w-5 text-right text-white/20">{i + 1}</span>
-                                    <div className="flex-1 truncate text-sm">{song.title}</div>
-                                    {song.duration && <span className="text-xs text-white/20 font-mono">{formatTime(song.duration)}</span>}
-                                </button>
-                            ))}
+                    {/* Bottom row: time + expand + close */}
+                    <div className="flex items-center justify-between px-3 py-1 border-t border-white/5">
+                        <span className="text-[10px] text-white/30 font-mono">
+                            {formatTime(currentTime)} / {formatTime(duration)}
+                        </span>
+                        <div className="flex items-center gap-0.5">
+                            <button onClick={() => setExpanded(!expanded)} className="p-1 text-white/30 hover:text-white/60 transition-colors cursor-pointer">
+                                {expanded ? <IconChevronDown size={12} /> : <IconChevronUp size={12} />}
+                            </button>
+                            <button onClick={onClose} className="p-1 text-white/30 hover:text-white/60 transition-colors cursor-pointer">
+                                <IconX size={12} />
+                            </button>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
