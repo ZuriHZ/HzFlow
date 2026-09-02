@@ -17,12 +17,15 @@ export default function MiniPlayerToggle({ isVisible, onToggle }: MiniPlayerTogg
         <AnimatePresence>
             {!isVisible && (
                 <motion.button
+                    drag
+                    dragMomentum={false}
+                    dragElastic={0}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     onClick={onToggle}
-                    className="fixed bottom-4 right-4 z-50 p-3 rounded-full bg-violet-500/80 hover:bg-violet-500 text-white shadow-lg shadow-violet-500/25 transition-colors cursor-pointer"
+                    className="fixed bottom-20 right-4 z-50 p-3 rounded-full bg-violet-500/80 hover:bg-violet-500 text-white shadow-lg shadow-violet-500/25 transition-colors cursor-grab active:cursor-grabbing"
                 >
                     <IconMusic size={20} />
                 </motion.button>

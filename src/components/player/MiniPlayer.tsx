@@ -32,11 +32,14 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
         <AnimatePresence>
             {isVisible && (
                 <motion.div
+                    drag
+                    dragMomentum={false}
+                    dragElastic={0}
                     initial={{ opacity: 0, scale: 0.8, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8, y: 20 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="fixed bottom-4 right-4 z-50 w-[280px] rounded-2xl bg-[#130d24]/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden"
+                    className="fixed bottom-20 right-4 z-50 w-[280px] rounded-2xl bg-[#130d24]/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden cursor-grab active:cursor-grabbing"
                 >
                     {/* Progress bar */}
                     <div className="h-0.5 bg-white/5">
