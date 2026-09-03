@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext, IconPlayerTrackPrev, IconMusic, IconX, IconChevronUp, IconChevronDown } from "@tabler/icons-react";
-import { usePlayerStore } from "@/store/usePlayerStore";
+import { usePlayerStore } from "@/features/audio/store/usePlayerStore";
 
 const formatTime = (t: number) => {
     if (!isFinite(t) || isNaN(t)) return "0:00";
@@ -46,11 +46,11 @@ export default function MiniPlayer({ currentTime, duration, progress, onTogglePl
                     {/* Main row */}
                     <div className="flex items-center gap-2.5 px-3 h-14">
                         {/* Cover */}
-                        <button onClick={() => navigate("/musica")} className="flex-shrink-0 cursor-pointer">
+                        <button onClick={() => navigate("/musica")} className="shrink-0 cursor-pointer">
                             {currentSong?.cover ? (
                                 <img src={currentSong.cover} alt="" className="w-9 h-9 rounded-lg object-cover" />
                             ) : (
-                                <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center">
+                                <div className="w-10 h-10 shrink-0 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
                                     <IconMusic size={16} className="text-white/30" />
                                 </div>
                             )}

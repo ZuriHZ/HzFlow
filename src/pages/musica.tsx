@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext, IconPlayerTrackPrev, IconVolume, IconFolderPlus, IconMusic, IconArrowsShuffle, IconRepeat, IconTrash, IconX, IconSearch } from "@tabler/icons-react";
-import { usePlayerStore } from "../store/usePlayerStore";
-import { useAudioPlayer } from "../hooks/useAudioPlayer";
+import { usePlayerStore } from "../features/audio/store/usePlayerStore";
+import { useAudioPlayer } from "../features/audio/hooks/useAudioPlayer";
 
 const formatTime = (time: number) => {
     if (!isFinite(time) || isNaN(time)) return "0:00";

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { usePlayerStore } from "@/store/usePlayerStore";
+import { usePlayerStore } from "@/features/audio/store/usePlayerStore";
 
 export function useAudioPlayer() {
     const { playlist, currentIndex, isPlaying, volume, playNext, setIsPlaying, setVolume } = usePlayerStore();
