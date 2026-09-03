@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconMusic } from "@tabler/icons-react";
-import { usePlayerStore } from "@/store/usePlayerStore";
+import { usePlayerStore } from "@/features/audio/store/usePlayerStore";
 
 interface MiniPlayerToggleProps {
     isVisible: boolean;

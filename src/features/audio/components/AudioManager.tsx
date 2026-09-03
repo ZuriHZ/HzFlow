@@ -1,9 +1,9 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import MiniPlayer from "@/components/player/MiniPlayer";
-import MiniPlayerToggle from "@/components/player/MiniPlayerToggle";
-import { usePlayerStore } from "@/store/usePlayerStore";
+import { useAudioPlayer } from "@/features/audio/hooks/useAudioPlayer";
+import MiniPlayer from "@/features/audio/components/MiniPlayer";
+import MiniPlayerToggle from "@/features/audio/components/MiniPlayerToggle";
+import { usePlayerStore } from "@/features/audio/store/usePlayerStore";
 
 export default function AudioManager() {
     const location = useLocation();

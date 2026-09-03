@@ -6,7 +6,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TitleBar from "@/components/layout/TitleBar";
 import Footer from "@/components/layout/Footer";
 import LoadingScreen from "@/components/shared/LoadingScreen";
-import AudioManager from "@/components/player/AudioManager";
+import AudioManager from "@/features/audio/components/AudioManager";
 
 import Blog from "@/pages/blog";
 import Config from "@/pages/config";
