@@ -1,0 +1,305 @@
+# =============================================================================
+# CI/CD para Electron - GitHub Actions
+# =============================================================================
+# Este archivo automatiza:
+#   1. Verificar que el código compile sin errores (en cada PR)
+#   2. Generar instaladores para Windows, Mac y Linux
+#   3. Publicar releases automáticamente cuando creas un tag
+#
+# CÓMO FUNCIONA:
+#   - Cuando haces push a main o creas un PR → ejecuta tests/build
+#   - Cuando creas un tag (ej: v1.0.0) → genera instaladores y los sube a GitHub Releases
+#
+# DOCUMENTACIÓN OFICIAL:
+#   - GitHub Actions: https://docs.github.com/en/actions
+#   - electron-builder: https://www.electron.build/
+# =============================================================================
+
+# 'name' es el nombre que aparece en la pestaña "Actions" de tu repo
+name: Build & Release Electron App
+
+# =============================================================================
+# TRIGGERS - ¿CUÁNDO SE EJECUTA ESTE WORKFLOW?
+# =============================================================================
+# 'on' define los eventos que disparan este workflow
+on:
+  # 'push' = cuando alguien hace push al repo
+  push:
+    branches:                    # Solo se ejecuta si el push es a estas ramas
+      - main                  # Rama principal (producción)
+      - develop               # Rama de desarrollo
+    tags:
+      - 'v*'                  # También se ejecuta si el push contiene un tag que empiece con 'v'
+                             # Ejemplo: v1.0.0, v2.1.3, v1.0.0-beta
+
+  # 'pull_request' = cuando alguien crea o actualiza un PR
+  pull_request:
+    branches:
+      - main                  # Solo para PRs que apuntan a main
+
+# =============================================================================
+# PERMISOS - ¿QUÉ PUEDE HACER ESTE WORKFLOW?
+# =============================================================================
+# Por seguridad, GitHub Actions tiene permisos mínimos por defecto
+permissions:
+  contents: write              # Necesario para:
+                             #   - Crear releases
+                             #   - Subir archivos (instaladores) a releases
+                             #   - Actualizar tags
+
+# =============================================================================
+# JOBS - LOS PASOS QUE SE EJECUTAN
+# =============================================================================
+# Un 'job' es un conjunto de pasos que se ejecutan en la misma máquina virtual
+# Por defecto, los jobs se ejecutan en PARALELO (uno al lado del otro)
+jobs:
+
+  # ===========================================================================
+  # JOB 1: BUILD (Compilar la app)
+  # ===========================================================================
+  # Este job compila tu app de Electron y genera los instaladores
+  # Se ejecuta en 3 SISTEMAS OPERATIVOS diferentes para generar instaladores
+  # nativos para cada plataforma
+  build:
+    # 'runs-on' define el sistema operativo donde corre el job
+    # Cada plataforma necesita su propio build porque:
+    #   - Windows genera .exe (NSIS)
+    #   - macOS genera .dmg
+    #   - Linux genera .AppImage
+    strategy:
+      # 'matrix' permite ejecutar el mismo job con diferentes configuraciones
+      # Aquí estamos creando 3 jobs paralelos (uno por SO)
+      matrix:
+        so:
+          - windows-latest     # Windows Server 2022 (genera .exe)
+          - macos-latest       # macOS latest (genera .dmg)
+          - ubuntu-latest      # Ubuntu latest (genera .AppImage)
+
+    # 'runs-on' usa el valor de la matriz
+    runs-on: ${{ matrix.so }}
+
+    # 'steps' son los pasos individuales que se ejecutan en orden
+    steps:
+
+      # -----------------------------------------------------------------------
+      # PASO 1: Descargar el código del repo
+      # -----------------------------------------------------------------------
+      # 'actions/checkout' es una action oficial de GitHub que descarga
+      # tu código fuente a la máquina virtual
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # Descarga TODO el historial de git (necesario
+                              # para que electron-builder pueda calcular la
+                              # versión y generar changelogs automáticos)
+
+      # -----------------------------------------------------------------------
+      # PASO 2: Instalar Node.js
+      # -----------------------------------------------------------------------
+      # Necesitamos Node.js para ejecutar npm/pnpm y compilar el proyecto
+      - name: 🟢 Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20      # Versión de Node.js a instalar
+                             # Node 20 es LTS (Long Term Support = estable)
+
+      # -----------------------------------------------------------------------
+      # PASO 3: Instalar pnpm (gestor de paquetes)
+      # -----------------------------------------------------------------------
+      # Tu proyecto usa pnpm (lo defines en package.json con "packageManager")
+      # Esta action instala pnpm automáticamente
+      - name: 📦 Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9            # Versión de pnpm a instalar
+
+      # -----------------------------------------------------------------------
+      # PASO 4: Instalar dependencias del proyecto
+      # -----------------------------------------------------------------------
+      # 'pnpm install' descarga todas las librerías que necesitas
+      # (React, Electron, Tailwind, etc.)
+      - name: 📚 Instalar dependencias
+        run: pnpm install --frozen-lockfile
+        # '--frozen-lockfile' significa:
+        #   - Usa EXACTAMENTE las versiones del pnpm-lock.yaml
+        #   - NO actualiza nada (si el lockfile está desactualizado, falla)
+        #   - Esto garantiza que todos tengan las mismas versiones
+
+      # -----------------------------------------------------------------------
+      # PASO 5: Compilar el frontend (Vite)
+      # -----------------------------------------------------------------------
+      # Este paso compila tu código React/TypeScript a JavaScript optimizado
+      # El resultado se guarda en la carpeta 'dist/'
+      - name: 🔨 Compilar frontend (Vite)
+        run: pnpm build
+        # Equivale a: pnpm run build → vite build
+
+      # -----------------------------------------------------------------------
+      # PASO 6: Generar instalador con electron-builder
+      # -----------------------------------------------------------------------
+      # electron-builder toma tu código compilado y genera un instalador
+      # nativo para cada plataforma
+      #
+      # ¿QUÉ HACE EXACTAMENTE?
+      #   1. Toma los archivos de 'dist/' (tu frontend compilado)
+      #   2. Toma los archivos de 'electron/' (tu código principal de Electron)
+      #   3. Los empaqueta junto con Node.js runtime
+      #   4. Genera un instalador nativo (.exe, .dmg, .AppImage)
+      #
+      # CONFIGURACIÓN:
+      #   La configuración está en package.json bajo la clave "build"
+      #   (líneas 55-81 de tu package.json)
+      - name: 📦 Generar instalador
+        run: pnpm dist
+        # Equivale a: pnpm run dist → vite build && electron-builder
+        env:
+          # Variables de entorno para electron-builder
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 'secrets.GITHUB_TOKEN' es un token automático que GitHub genera
+          # Para cada ejecución del workflow. Permite:
+          #   - Subir archivos a releases
+          #   - Actualizar tags
+          #   - NO necesitas configurarlo, GitHub lo genera automáticamente
+
+      # -----------------------------------------------------------------------
+      # PASO 7: Subir el instalador como artefacto
+      # -----------------------------------------------------------------------
+      # Un 'artefacto' es un archivo que se genera durante el workflow
+      # y que puedes descargar después desde la interfaz de GitHub
+      #
+      # ¿PARA QUÉ SIRVE?
+      #   - Puedes descargar el .exe directamente desde la pestaña Actions
+      #   - Útil para probar la app antes de hacer un release oficial
+      - name: 📤 Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          # 'name' es el nombre del artefacto en la interfaz de GitHub
+          name: installer-${{ matrix.so }}
+          # 'path' es qué archivos subir
+          # Usamos un patrón glob para capturar los instaladores generados
+          path: |
+            release/*.exe       # Instaladores Windows
+            release/*.dmg       # Instaladores macOS
+            release/*.AppImage  # Instaladores Linux
+            release/*.yml       # Archivos de metadata (para auto-updates)
+          # NOTA: upload-artifact NO falla si algún patrón no coincide
+          # Por ejemplo, en Windows solo generará .exe, ignorando .dmg y .AppImage
+
+  # ===========================================================================
+  # JOB 2: RELEASE (Publicar release)
+  # ===========================================================================
+  # Este job solo se ejecuta cuando creas un tag (ej: v1.0.0)
+  # Genera los instaladores y los sube a GitHub Releases
+  release:
+    # 'needs: build' significa que este job ESPERA a que el job 'build'
+    # termine exitosamente antes de ejecutarse
+    # Esto garantiza que tenemos todos los instaladores listos
+    needs: build
+
+    # Solo se ejecuta si el push contiene un tag que empiece con 'v'
+    # Ejemplo: git tag v1.0.0 && git push --tags
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    # Se ejecuta en Ubuntu (solo necesitamos UNA máquina para el release)
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # -----------------------------------------------------------------------
+      # PASO 1: Descargar todos los artefactos del job 'build'
+      # -----------------------------------------------------------------------
+      # Descargamos los instaladores generados por los 3 jobs de build
+      # (Windows, macOS, Linux)
+      - name: 📥 Descargar artefactos
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts        # Carpeta donde se descargarán
+          merge-multiple: true   # Junta todos los artefactos en una sola carpeta
+                               # Sin esto, tendríamos subcarpetas por SO
+
+      # -----------------------------------------------------------------------
+      # PASO 2: Crear GitHub Release
+      # -----------------------------------------------------------------------
+      # 'softprops/action-gh-release' es una action popular para crear
+      # releases en GitHub automáticamente
+      - name: 🚀 Crear Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # 'files' lista los archivos que se subirán al release
+          # GitHub los mostrará para descarga manual
+          files: |
+            artifacts/ZuriHZ-Setup-*.exe
+            artifacts/ZuriHZ-*.dmg
+            artifacts/ZuriHZ-*.AppImage
+            artifacts/*.yml
+          # 'draft: false' significa que el release se publica directamente
+          # Si lo pones en true, se crea como borrador y debes publicarlo manual
+          draft: false
+          # 'generate_release_notes: true' genera automáticamente un changelog
+          # basado en los commits desde el último tag
+          generate_release_notes: true
+          # 'prerelease: false' marca el release como estable
+          # Si es true, se marca como "Pre-release" (ej: para betas)
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # El token es necesario para crear el release y subir archivos
+
+# =============================================================================
+# FLUJO COMPLETO - RESUMEN VISUAL
+# =============================================================================
+#
+# PUSH A MAIN/DEVELOP:
+#   ┌─────────────┐
+#   │   Build     │ → Genera instalador Windows
+#   │  (Windows)  │
+#   └─────────────┘
+#   ┌─────────────┐
+#   │   Build     │ → Genera instalador macOS
+#   │   (macOS)   │
+#   └─────────────┘
+#   ┌─────────────┐
+#   │   Build     │ → Genera instalador Linux
+#   │  (Linux)    │
+#   └─────────────┘
+#         ↓
+#   Artefactos disponibles para descarga
+#
+# PUSH CON TAG (v1.0.0):
+#   ┌─────────────┐
+#   │   Build     │ → Genera los 3 instaladores
+#   │  (paralelo) │
+#   └─────────────┘
+#         ↓
+#   ┌─────────────┐
+#   │   Release   │ → Crea GitHub Release con todos los instaladores
+#   └─────────────┘
+#
+# =============================================================================
+
+# =============================================================================
+# COMANDOS ÚTILES PARA TI (como desarrollador)
+# =============================================================================
+#
+# 1. HACER UN PUSH NORMAL (activa build, NO release):
+#    git add .
+#    git commit -m "feat: agregar nueva funcionalidad"
+#    git push origin main
+#
+# 2. HACER UN RELEASE (activa build + release):
+#    git tag v1.0.0
+#    git push origin v1.0.0
+#
+#    O en un solo comando:
+#    git tag v1.0.0 && git push origin v1.0.0
+#
+# 3. VER LOS BUILDS EN GITHUB:
+#    Ve a tu repo → pestaña "Actions" → verás los workflows ejecutándose
+#
+# 4. DESCARGAR UN INSTALADOR DE PRUEBA:
+#    Ve a la pestaña Actions → selecciona un build → en "Artifacts" → descarga
+#
+# 5. VER UN RELEASE:
+#    Ve a tu repo → pestaña "Releases" → verás los instaladores para descarga
+#
+# =============================================================================
