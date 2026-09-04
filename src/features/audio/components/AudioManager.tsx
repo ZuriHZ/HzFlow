@@ -44,6 +44,23 @@ export default function AudioManager() {
         }
     }, [isVisible, isOnMusicPage]);
 
+    // Atajo de teclado Ctrl+M para mostrar/ocultar el mini-player
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ctrl+M o Cmd+M (Mac)
+            if ((e.ctrlKey || e.metaKey) && e.key === "m") {
+                e.preventDefault();
+                // Solo funciona si no estamos en la pagina de musica y hay canciones
+                if (!isOnMusicPage && playlist.length > 0) {
+                    handleToggle();
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isOnMusicPage, playlist.length]);
+
     const handleClose = () => {
         setIsVisible(false);
         previousVisibilityRef.current = false;
