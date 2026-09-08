@@ -1,5 +1,5 @@
 const { ipcMain, shell } = require("electron");
-const { execFile } = require("child_process");
+const { exec, execFile } = require("child_process");
 const projectsStore = require("../projects/projectsStore");
 
 function setupProjectsHandlers() {
@@ -20,7 +20,7 @@ function setupProjectsHandlers() {
     });
 
     ipcMain.handle("projects:open-in-terminal", (event, projectPath) => {
-        shell.openExternal(projectPath);
+        exec(`cmd /c start cmd /k "cd /d ${projectPath}"`);
     });
 
     ipcMain.handle("projects:open-in-explorer", (event, projectPath) => {

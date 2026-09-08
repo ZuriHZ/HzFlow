@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     IconDeviceFloppy,
     IconTrash,
     IconPinFilled,
     IconPin,
     IconNotebook,
+    IconChevronDown,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,18 @@ export default function NoteEditor({
     const [content, setContent] = useState("");
     const [category, setCategory] = useState("snippets");
     const [tagsInput, setTagsInput] = useState("");
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setShowCategoryDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     useEffect(() => {
         if (note) {
@@ -101,17 +114,45 @@ export default function NoteEditor({
                     className="flex-1 bg-transparent text-base font-semibold text-white/90 placeholder-white/25 outline-none"
                 />
 
-                <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="cursor-pointer appearance-none rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-xs text-white/60 outline-none transition-all focus:border-violet-500/50"
-                >
-                    {CATEGORIES.map((c) => (
-                        <option key={c.value} value={c.value}>
-                            {c.label}
-                        </option>
-                    ))}
-                </select>
+                <div ref={dropdownRef} className="relative">
+                    <button
+                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                        className="flex items-center gap-1.5 cursor-pointer rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-xs text-white/60 outline-none transition-all hover:bg-white/[0.06] hover:text-white/80 focus:border-violet-500/50"
+                    >
+                        {CATEGORIES.find((c) => c.value === category)?.label}
+                        <IconChevronDown size={12} className={cn("transition-transform", showCategoryDropdown && "rotate-180")} />
+                    </button>
+
+                    <AnimatePresence>
+                        {showCategoryDropdown && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.12 }}
+                                className="absolute right-0 top-full z-50 mt-1 min-w-[140px] overflow-hidden rounded-lg border border-white/10 bg-zinc-800/95 shadow-xl shadow-black/40 backdrop-blur-sm"
+                            >
+                                {CATEGORIES.map((c) => (
+                                    <button
+                                        key={c.value}
+                                        onClick={() => {
+                                            setCategory(c.value);
+                                            setShowCategoryDropdown(false);
+                                        }}
+                                        className={cn(
+                                            "flex w-full items-center px-3 py-1.5 text-xs transition-colors",
+                                            category === c.value
+                                                ? "bg-violet-500/20 text-violet-300"
+                                                : "text-white/60 hover:bg-white/[0.06] hover:text-white/80",
+                                        )}
+                                    >
+                                        {c.label}
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
 
                 <button
                     onClick={() => onTogglePin(note.id)}

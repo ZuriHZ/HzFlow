@@ -129,45 +129,40 @@ const Home = () => {
             <motion.section
                 {...fadeUp}
                 transition={{ duration: 0.6 }}
-                className="bg-hero-surface relative overflow-hidden rounded-2xl p-6 md:p-8"
+                className="rounded-xl border border-white/5 bg-white/[0.02] p-5"
             >
-                <div className="relative z-10 space-y-6">
-                    <div className="space-y-2">
-                        <MorphingText
-                            texts={["Bienvenido, Dev"]}
-                            className="text-3xl font-bold text-white md:text-4xl"
-                        />
-                        <p className="text-base text-white/50">
-                            Tu centro de productividad de desarrollo
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-semibold tracking-tight text-white/90 md:text-3xl">
+                            Centro de Productividad
+                        </h1>
+                        <p className="text-sm text-white/40">
+                            Gestiona tus notas, proyectos y bookmarks en un solo lugar
                         </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-white/40">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-white/40">
                         <span className="capitalize">{formatDate(now)}</span>
                         <span className="text-white/20">·</span>
                         <span>{formatTime(now)}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-3 pt-1">
-                        {[
-                            { icon: <IconNotebook size={16} />, value: notes.length, label: "Notas" },
-                            { icon: <IconStack2 size={16} />, value: projects.length, label: "Proyectos" },
-                            { icon: <IconBookmarks size={16} />, value: bookmarks.length, label: "Bookmarks" },
-                        ].map((stat) => (
-                            <div
-                                key={stat.label}
-                                className="flex items-center gap-2 rounded-lg bg-white/[0.05] px-3 py-1.5 text-sm text-white/60"
-                            >
-                                {stat.icon}
-                                <span className="font-semibold text-white/80">{stat.value}</span>
-                                <span>{stat.label}</span>
-                            </div>
-                        ))}
+                        <div className="flex gap-2">
+                            {[
+                                { icon: <IconNotebook size={14} />, value: notes.length, label: "Notas" },
+                                { icon: <IconStack2 size={14} />, value: projects.length, label: "Proyectos" },
+                                { icon: <IconBookmarks size={14} />, value: bookmarks.length, label: "Bookmarks" },
+                            ].map((stat) => (
+                                <div
+                                    key={stat.label}
+                                    className="flex items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-xs text-white/50"
+                                >
+                                    {stat.icon}
+                                    <span className="font-medium text-white/70">{stat.value}</span>
+                                    <span>{stat.label}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-
-                <div className="pointer-events-none absolute top-0 right-0 h-72 w-72 rounded-full bg-violet-600/20 blur-[100px]" />
-                <div className="pointer-events-none absolute bottom-0 left-0 h-56 w-56 rounded-full bg-fuchsia-600/10 blur-[80px]" />
             </motion.section>
 
             {/* Quick Actions */}

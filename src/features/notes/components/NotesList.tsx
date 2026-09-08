@@ -55,13 +55,13 @@ export default function NotesList({
                 />
             </div>
 
-            <div className="flex gap-1.5 overflow-x-auto px-4 pb-3 scrollbar-none">
+            <div className="flex min-w-0 gap-1.5 overflow-x-auto px-4 pb-3">
                 {categories.map((cat) => (
                     <button
                         key={cat.value}
                         onClick={() => onCategoryChange(cat.value)}
                         className={cn(
-                            "shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all",
+                            "shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all",
                             selectedCategory === cat.value
                                 ? "bg-violet-500/20 text-violet-300"
                                 : "text-white/40 hover:bg-white/5 hover:text-white/60",
