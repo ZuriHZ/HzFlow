@@ -64,6 +64,77 @@ interface NotificationSendResult {
     reason?: string;
 }
 
+// ── GitHub Types ──
+
+interface GithubUserPublic {
+    login: string;
+    avatarUrl?: string;
+    name?: string | null;
+    htmlUrl?: string;
+}
+
+type GithubAuthStatus =
+    | { authenticated: false }
+    | { authenticated: true; user: GithubUserPublic };
+
+interface GithubDeviceFlowStart {
+    userCode: string;
+    verificationUri: string;
+    expiresIn: number;
+    interval: number;
+}
+
+interface GithubPrListItem {
+    id: number;
+    number: number;
+    title: string;
+    state: "open" | "closed";
+    merged?: boolean;
+    draft?: boolean;
+    repository: string;
+    author: string;
+    labels: string[];
+    updatedAt: string;
+    htmlUrl: string;
+}
+
+interface GithubPrDetail extends GithubPrListItem {
+    body: string | null;
+    createdAt: string;
+    baseRef?: string;
+    headRef?: string;
+    checksSummary?: { state: string; totalCount?: number } | null;
+}
+
+interface GithubListFilter {
+    involvement?: "involved" | "created" | "assigned" | "review-requested";
+    state?: "open" | "closed" | "all";
+    perPage?: number;
+}
+
+type GithubIpcErrorCode =
+    | "UNAUTHENTICATED"
+    | "CANCELLED"
+    | "EXPIRED"
+    | "ACCESS_DENIED"
+    | "RATE_LIMITED"
+    | "NETWORK"
+    | "INVALID_URL"
+    | "SAFE_STORAGE_UNAVAILABLE"
+    | "UNKNOWN";
+
+interface GithubApi {
+    getStatus(): Promise<GithubAuthStatus>;
+    deviceFlowStart(): Promise<GithubDeviceFlowStart>;
+    deviceFlowWait(): Promise<GithubAuthStatus>;
+    deviceFlowCancel(): Promise<void>;
+    loginPat?(token: string): Promise<GithubAuthStatus>;
+    logout(): Promise<void>;
+    prsList(filter?: GithubListFilter): Promise<GithubPrListItem[]>;
+    prsGet(owner: string, repo: string, number: number): Promise<GithubPrDetail>;
+    openExternal(url: string): Promise<void>;
+}
+
 // ── ElectronAPI ──
 
 interface ElectronAPI {
@@ -111,4 +182,7 @@ interface ElectronAPI {
     // Notifications
     notificationsSend: (title: string, body: string) => Promise<NotificationSendResult>;
     notificationsRequestPermission: () => Promise<string>;
+
+    // GitHub
+    github: GithubApi;
 }

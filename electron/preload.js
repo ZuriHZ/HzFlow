@@ -45,4 +45,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Notifications
     notificationsSend: (title, body) => ipcRenderer.invoke("notifications:send", title, body),
     notificationsRequestPermission: () => ipcRenderer.invoke("notifications:request-permission"),
+
+    // GitHub
+    github: {
+        getStatus: () => ipcRenderer.invoke("github:get-status"),
+        deviceFlowStart: () => ipcRenderer.invoke("github:device-flow:start"),
+        deviceFlowWait: () => ipcRenderer.invoke("github:device-flow:wait"),
+        deviceFlowCancel: () => ipcRenderer.invoke("github:device-flow:cancel"),
+        logout: () => ipcRenderer.invoke("github:logout"),
+        loginPat: (token) => ipcRenderer.invoke("github:login-pat", { token }),
+        prsList: (filter) => ipcRenderer.invoke("github:prs:list", filter),
+        prsGet: (owner, repo, number) => ipcRenderer.invoke("github:prs:get", { owner, repo, number }),
+        openExternal: (url) => ipcRenderer.invoke("github:open-external", { url }),
+    },
 });

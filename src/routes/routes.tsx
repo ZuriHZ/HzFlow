@@ -18,6 +18,7 @@ import Noticias from "@/pages/noticias";
 const Projects = React.lazy(() => import("@/pages/projects"));
 const Bookmarks = React.lazy(() => import("@/pages/bookmarks"));
 const Notes = React.lazy(() => import("@/pages/notes"));
+const Prs = React.lazy(() => import("@/pages/prs"));
 
 export function MyRoutes() {
     const [loading, setLoading] = useState(true);
@@ -49,6 +50,7 @@ export function MyRoutes() {
                                 <Route path="/projects" element={<Projects />} />
                                 <Route path="/bookmarks" element={<Bookmarks />} />
                                 <Route path="/notes" element={<Notes />} />
+                                <Route path="/prs" element={<Prs />} />
                             </Routes>
                         </div>
                         <Footer />

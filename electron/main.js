@@ -6,6 +6,7 @@ const { setupNotesHandlers } = require("./ipc/notesHandlers");
 const { setupProjectsHandlers } = require("./ipc/projectsHandlers");
 const { setupBookmarksHandlers } = require("./ipc/bookmarksHandlers");
 const { setupNotificationsHandlers } = require("./ipc/notificationsHandlers");
+const { setupGithubHandlers } = require("./github/ipc");
 
 const isDev = !app.isPackaged;
 let mainWindow;
@@ -25,6 +26,9 @@ app.whenReady().then(() => {
     setupProjectsHandlers();
     setupBookmarksHandlers();
     setupNotificationsHandlers();
+
+    // 5. Configurar manejadores IPC de GitHub
+    setupGithubHandlers();
 });
 
 // Manejo correcto del cierre de la aplicación

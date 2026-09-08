@@ -3,19 +3,11 @@ import { motion } from "framer-motion";
 import {
     IconStar,
     IconExternalLink,
-    IconBrandGithub,
     IconBrandWhatsapp,
     IconBrandFacebook,
 } from "@tabler/icons-react";
 
 const socialLinks = [
-    {
-        label: "GitHub",
-        url: "https://github.com/",
-        icon: <IconBrandGithub size={24} />,
-        color: "from-gray-600 to-gray-400",
-        description: "Mis repositorios y proyectos open source",
-    },
     {
         label: "WhatsApp",
         url: "https://wa.me/",

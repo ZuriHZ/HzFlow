@@ -12,6 +12,7 @@ import {
     IconFolder,
     IconNotebook,
     IconBookmark,
+    IconBrandGithub,
     IconChevronLeft,
     IconChevronRight,
 } from "@tabler/icons-react";
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
     { label: "Música", path: "/musica", icon: <IconMusic size={22} /> },
     { label: "Extras", path: "/extras", icon: <IconStar size={22} /> },
     { label: "Bookmarks", path: "/bookmarks", icon: <IconBookmark size={22} /> },
+    { label: "GitHub PRs", path: "/prs", icon: <IconBrandGithub size={22} /> },
 ];
 
 const bottomItems: NavItem[] = [
