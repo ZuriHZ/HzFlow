@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext, IconPlayerTrackPrev, IconVolume, IconFolderPlus, IconMusic, IconArrowsShuffle, IconRepeat, IconTrash, IconX, IconSearch } from "@tabler/icons-react";
 import { usePlayerStore } from "../features/audio/store/usePlayerStore";
@@ -37,24 +37,37 @@ const Musica = () => {
         }
     };
 
-    // NUEVO: Manejar cuando soltamos archivos en la ventana
-    const handleDrop = async (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDraggingOver(false);
-        // Electron inyecta una propiedad 'path' en los File objects
-        const files = Array.from(e.dataTransfer.files);
-        const paths = files.map((f) => (f as File & { path?: string }).path).filter(Boolean) as string[];
-        if (paths.length > 0) {
-            try {
-                const newSongs = await window.electronAPI.processDroppedFiles(paths);
-                if (newSongs && newSongs.length > 0) {
-                    addSongs(newSongs);
+    // Escuchar drop global del proceso principal (funciona con sandbox)
+    useEffect(() => {
+        const api = window.electronAPI;
+        if (!api) return;
+
+        const onDragEnter = () => setIsDraggingOver(true);
+        const onDragLeave = () => setIsDraggingOver(false);
+        const onDropped = async (paths: string[]) => {
+            setIsDraggingOver(false);
+            if (paths.length > 0) {
+                try {
+                    const newSongs = await api.processDroppedFiles(paths);
+                    if (newSongs && newSongs.length > 0) {
+                        addSongs(newSongs);
+                    }
+                } catch (error) {
+                    console.error("Error al procesar archivos soltados:", error);
                 }
-            } catch (error) {
-                console.error("Error al procesar archivos soltados:", error);
             }
-        }
-    };
+        };
+
+        api.onWindowDragEnter(onDragEnter);
+        api.onWindowDragLeave(onDragLeave);
+        api.onWindowDroppedFiles(onDropped);
+
+        return () => {
+            api.onWindowDragEnter(() => {});
+            api.onWindowDragLeave(() => {});
+            api.onWindowDroppedFiles(() => {});
+        };
+    }, [addSongs]);
 
     const handleRemoveSong = (index: number) => {
         const song = playlist[index];
@@ -71,12 +84,6 @@ const Musica = () => {
         <div
             className={`max-w-4xl mx-auto w-full space-y-6 transition-colors duration-300 rounded-2xl p-4
                 ${isDraggingOver ? "bg-violet-500/10 border-2 border-dashed border-violet-500" : "border-2 border-transparent"}`}
-            onDragOver={(e) => {
-                e.preventDefault();
-                setIsDraggingOver(true);
-            }}
-            onDragLeave={() => setIsDraggingOver(false)}
-            onDrop={handleDrop}
         >
             {/* Header */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex items-center justify-between">

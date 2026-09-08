@@ -13,4 +13,36 @@ contextBridge.exposeInMainWorld("electronAPI", {
     toggleDevTools: () => ipcRenderer.send("devtools"),
     processDroppedFiles: (paths) => ipcRenderer.invoke("process-dropped-files", paths),
     getAudioData: (filePath) => ipcRenderer.invoke("get-audio-data", filePath),
+    onWindowDragEnter: (callback) => ipcRenderer.on("window-drag-enter", callback),
+    onWindowDragLeave: (callback) => ipcRenderer.on("window-drag-leave", callback),
+    onWindowDroppedFiles: (callback) => ipcRenderer.on("window-dropped-files", (_event, paths) => callback(paths)),
+
+    // Notes
+    notesGetAll: () => ipcRenderer.invoke("notes:get-all"),
+    notesGetById: (id) => ipcRenderer.invoke("notes:get-by-id", id),
+    notesCreate: (note) => ipcRenderer.invoke("notes:create", note),
+    notesUpdate: (id, data) => ipcRenderer.invoke("notes:update", id, data),
+    notesDelete: (id) => ipcRenderer.invoke("notes:delete", id),
+    notesSearch: (query) => ipcRenderer.invoke("notes:search", query),
+
+    // Projects
+    projectsGetAll: () => ipcRenderer.invoke("projects:get-all"),
+    projectsAdd: (projectPath) => ipcRenderer.invoke("projects:add", projectPath),
+    projectsRemove: (id) => ipcRenderer.invoke("projects:remove", id),
+    projectsOpenInVSCode: (projectPath) => ipcRenderer.invoke("projects:open-in-vscode", projectPath),
+    projectsOpenInTerminal: (projectPath) => ipcRenderer.invoke("projects:open-in-terminal", projectPath),
+    projectsOpenInExplorer: (projectPath) => ipcRenderer.invoke("projects:open-in-explorer", projectPath),
+    projectsGetGitInfo: (projectPath) => ipcRenderer.invoke("projects:get-git-info", projectPath),
+
+    // Bookmarks
+    bookmarksGetAll: () => ipcRenderer.invoke("bookmarks:get-all"),
+    bookmarksCreate: (bookmark) => ipcRenderer.invoke("bookmarks:create", bookmark),
+    bookmarksUpdate: (id, data) => ipcRenderer.invoke("bookmarks:update", id, data),
+    bookmarksDelete: (id) => ipcRenderer.invoke("bookmarks:delete", id),
+    bookmarksImport: (data) => ipcRenderer.invoke("bookmarks:import", data),
+    bookmarksExport: () => ipcRenderer.invoke("bookmarks:export"),
+
+    // Notifications
+    notificationsSend: (title, body) => ipcRenderer.invoke("notifications:send", title, body),
+    notificationsRequestPermission: () => ipcRenderer.invoke("notifications:request-permission"),
 });

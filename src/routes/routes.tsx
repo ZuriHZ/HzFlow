@@ -15,6 +15,9 @@ import Features from "@/pages/features";
 import Home from "@/pages/home";
 import Musica from "@/pages/musica";
 import Noticias from "@/pages/noticias";
+const Projects = React.lazy(() => import("@/pages/projects"));
+const Bookmarks = React.lazy(() => import("@/pages/bookmarks"));
+const Notes = React.lazy(() => import("@/pages/notes"));
 
 export function MyRoutes() {
     const [loading, setLoading] = useState(true);
@@ -43,6 +46,9 @@ export function MyRoutes() {
                                 <Route path="/features" element={<Features />} />
                                 <Route path="/musica" element={<Musica />} />
                                 <Route path="/extras" element={<Extras />} />
+                                <Route path="/projects" element={<Projects />} />
+                                <Route path="/bookmarks" element={<Bookmarks />} />
+                                <Route path="/notes" element={<Notes />} />
                             </Routes>
                         </div>
                         <Footer />

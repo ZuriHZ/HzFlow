@@ -14,6 +14,7 @@ export function useAudioPlayer() {
     const pendingSeekRef = useRef<number | null>(null);
     const blobUrlsRef = useRef<Map<string, string>>(new Map());
     const loadIdRef = useRef(0);
+    const isPlayRequestedRef = useRef(false);
 
     const currentSong = playlist[currentIndex];
 
@@ -62,6 +63,7 @@ export function useAudioPlayer() {
         if (songChanged) {
             lastIndexRef.current = currentIndex;
             setCurrentTime(0);
+            isPlayRequestedRef.current = isPlaying;
             const currentLoadId = ++loadIdRef.current;
             createBlobUrl(currentSong.filePath).then((result) => {
                 if (currentLoadId !== loadIdRef.current) return;
@@ -72,8 +74,12 @@ export function useAudioPlayer() {
                 }
             });
         } else {
-            if (isPlaying && audioRef.current.paused) audioRef.current.play().catch(console.error);
-            else if (!isPlaying && !audioRef.current.paused) audioRef.current.pause();
+            if (isPlaying && audioRef.current.paused) {
+                isPlayRequestedRef.current = true;
+                audioRef.current.play().catch(() => {});
+            } else if (!isPlaying && !audioRef.current.paused) {
+                audioRef.current.pause();
+            }
         }
     }, [currentIndex, isPlaying, currentSong]);
 
@@ -201,9 +207,12 @@ export function useAudioPlayer() {
                 audioRef.current.currentTime = pendingSeekRef.current;
                 pendingSeekRef.current = null;
             }
-            if (isPlaying) audioRef.current.play().catch(console.error);
+            if (isPlayRequestedRef.current || usePlayerStore.getState().isPlaying) {
+                audioRef.current.play().catch(() => {});
+                isPlayRequestedRef.current = false;
+            }
         }
-    }, [isPlaying]);
+    }, []);
 
     return {
         audioRef,
