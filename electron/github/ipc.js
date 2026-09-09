@@ -37,19 +37,7 @@ async function handleLoginPat(event, payload) {
     return { authenticated: true, user };
 }
 
-async function handleSaveToken(event, payload) {
-    if (!payload || !payload.token) {
-        throw { code: "UNKNOWN", message: "No token provided." };
-    }
 
-    const token = payload.token.trim();
-    if (!token) {
-        throw { code: "UNKNOWN", message: "Token is empty." };
-    }
-
-    saveToken(token);
-    return { ok: true };
-}
 
 async function handlePrsList(event, filter) {
     const token = loadToken();
@@ -85,7 +73,6 @@ function setupGithubHandlers() {
     ipcMain.handle("github:get-status", handleGetStatus);
     ipcMain.handle("github:logout", handleLogout);
     ipcMain.handle("github:login-pat", handleLoginPat);
-    ipcMain.handle("github:save-token", handleSaveToken);
     ipcMain.handle("github:prs:list", handlePrsList);
     ipcMain.handle("github:prs:get", handlePrsGet);
     ipcMain.handle("github:open-external", handleOpenExternal);

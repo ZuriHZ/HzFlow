@@ -20,6 +20,8 @@ import {
     IconEye,
     IconKey,
     IconEyeOff,
+    IconAlertTriangle,
+    IconInfoCircle,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -572,6 +574,45 @@ export default function Prs() {
                             {error}
                         </div>
                     )}
+
+                    {/* Security warning */}
+                    <div className="w-full max-w-sm rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
+                        <div className="flex items-start gap-3">
+                            <IconAlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-400" />
+                            <div className="space-y-2 text-xs leading-relaxed text-amber-300">
+                                <p className="text-sm font-semibold text-amber-200">Acerca de la seguridad</p>
+                                <ul className="list-inside list-disc space-y-1 text-amber-300/80">
+                                    <li>Tu token se almacena localmente en tu computadora, cifrado con la seguridad de tu sistema.</li>
+                                    <li>El token permite acceder a tus repositorios de GitHub — trátalo como una contraseña.</li>
+                                    <li>Te recomendamos crear un token con solo los permisos que necesitas (mínimo: scope <code className="rounded bg-amber-500/10 px-1 py-0.5 text-amber-200">repo</code> para leer PRs).</li>
+                                    <li>Podés revocar el token en cualquier momento desde <a
+                                        href="https://github.com/settings/tokens"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            window.electronAPI.github.openExternal("https://github.com/settings/tokens");
+                                        }}
+                                        className="underline decoration-amber-400/30 underline-offset-2 transition-colors hover:text-amber-200"
+                                    >github.com/settings/tokens</a></li>
+                                    <li>El token <strong className="text-amber-200">NUNCA</strong> se envía a ningún servidor excepto a <code className="rounded bg-amber-500/10 px-1 py-0.5 text-amber-200">api.github.com</code>.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scopes info */}
+                    <div className="w-full max-w-sm rounded-xl border border-violet-500/15 bg-violet-500/5 p-4">
+                        <div className="flex items-start gap-3">
+                            <IconInfoCircle size={18} className="mt-0.5 shrink-0 text-violet-400" />
+                            <div className="space-y-1.5 text-xs leading-relaxed text-violet-300/80">
+                                <p className="text-sm font-semibold text-violet-200">Permisos necesarios</p>
+                                <ul className="list-inside list-disc space-y-1">
+                                    <li><code className="rounded bg-violet-500/10 px-1 py-0.5 text-violet-200">repo</code> — Acceso completo a repositorios privados (requerido).</li>
+                                    <li><code className="rounded bg-violet-500/10 px-1 py-0.5 text-violet-200">public_repo</code> — Suficiente solo para repositorios públicos.</li>
+                                </ul>
+                                <p className="text-violet-300/60">El token se usa únicamente para leer tus Pull Requests vía la API de GitHub.</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="w-full max-w-sm">
                         <div className="relative">
