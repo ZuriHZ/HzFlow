@@ -27,6 +27,32 @@ function setupWindowManager() {
         win.loadFile(path.join(__dirname, "../../dist/index.html")); // Fixed path
     }
 
+    win.webContents.on("will-navigate", (e) => e.preventDefault());
+
+    // Drag & drop global: capturar archivos del OS y enviar al renderer
+    win.webContents.on("drag-enter", (e) => {
+        e.preventDefault();
+        win.webContents.send("window-drag-enter");
+    });
+
+    win.webContents.on("drag-over", (e) => {
+        e.preventDefault();
+    });
+
+    win.webContents.on("drop", (e) => {
+        e.preventDefault();
+        const paths = [];
+        if (e.files && e.files.length > 0) {
+            for (const file of e.files) {
+                if (file.path) paths.push(file.path);
+            }
+        }
+        if (paths.length > 0) {
+            win.webContents.send("window-dropped-files", paths);
+        }
+        win.webContents.send("window-drag-leave");
+    });
+
     win.once("ready-to-show", () => {
         win.show();
     });

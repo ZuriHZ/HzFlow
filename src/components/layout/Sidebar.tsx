@@ -9,6 +9,10 @@ import {
     IconRocket,
     IconStar,
     IconMusic,
+    IconFolder,
+    IconNotebook,
+    IconBookmark,
+    IconBrandGithub,
     IconChevronLeft,
     IconChevronRight,
 } from "@tabler/icons-react";
@@ -22,11 +26,15 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { label: "Inicio", path: "/", icon: <IconHome size={22} /> },
+    { label: "Proyectos", path: "/projects", icon: <IconFolder size={22} /> },
+    { label: "Notes", path: "/notes", icon: <IconNotebook size={22} /> },
     { label: "Noticias", path: "/noticias", icon: <IconNews size={22} /> },
     { label: "Blog", path: "/blog", icon: <IconPencil size={22} /> },
     { label: "Features", path: "/features", icon: <IconRocket size={22} /> },
     { label: "Música", path: "/musica", icon: <IconMusic size={22} /> },
     { label: "Extras", path: "/extras", icon: <IconStar size={22} /> },
+    { label: "Bookmarks", path: "/bookmarks", icon: <IconBookmark size={22} /> },
+    { label: "GitHub PRs", path: "/prs", icon: <IconBrandGithub size={22} /> },
 ];
 
 const bottomItems: NavItem[] = [

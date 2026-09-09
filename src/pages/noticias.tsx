@@ -1,6 +1,7 @@
-import React, { useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { IconNews, IconRefresh, IconExternalLink } from "@tabler/icons-react";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { IconNews, IconRefresh, IconExternalLink, IconChevronDown } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
 
 const NEWS_SITES = [
     { name: "YouTube", url: "https://www.youtube.com/" },
@@ -15,6 +16,20 @@ const Noticias = () => {
     const [site, setSite] = useState(NEWS_SITES[0].url);
     const webviewRef = useRef<any>(null);
     const [webviewError, setWebviewError] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const currentSite = NEWS_SITES.find((s) => s.url === site) ?? NEWS_SITES[0];
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handleReload = () => {
         if (webviewRef.current) {
@@ -51,26 +66,54 @@ const Noticias = () => {
 
                 <div className="flex items-center gap-3">
                     {/* Site selector */}
-                    <select
-                        className="bg-white/5 text-white/70 text-sm border border-white/10 rounded-xl px-3 py-2 
-                            focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
-                        value={site}
-                        title="Seleccionar sitio"
-                        onChange={(e) => {
-                            setSite(e.target.value);
-                            setWebviewError(false);
-                        }}
-                    >
-                        {NEWS_SITES.map((s) => (
-                            <option
-                                key={s.url}
-                                value={s.url}
-                                className="bg-secondary"
-                            >
-                                {s.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div ref={dropdownRef} className="relative">
+                        <button
+                            onClick={() => setShowDropdown(!showDropdown)}
+                            className={cn(
+                                "flex items-center gap-2 cursor-pointer rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-sm text-white/70",
+                                "outline-none transition-all hover:bg-white/[0.08] hover:text-white/90 hover:border-white/15",
+                                "focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20",
+                                showDropdown && "bg-white/[0.08] text-white/90 border-white/15"
+                            )}
+                        >
+                            {currentSite.name}
+                            <IconChevronDown
+                                size={14}
+                                className={cn("transition-transform duration-200", showDropdown && "rotate-180")}
+                            />
+                        </button>
+
+                        <AnimatePresence>
+                            {showDropdown && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                                    transition={{ duration: 0.12 }}
+                                    className="absolute right-0 top-full z-50 mt-1.5 min-w-[180px] overflow-hidden rounded-xl border border-white/10 bg-zinc-800/95 shadow-xl shadow-black/40 backdrop-blur-sm"
+                                >
+                                    {NEWS_SITES.map((s) => (
+                                        <button
+                                            key={s.url}
+                                            onClick={() => {
+                                                setSite(s.url);
+                                                setShowDropdown(false);
+                                                setWebviewError(false);
+                                            }}
+                                            className={cn(
+                                                "flex w-full items-center px-3.5 py-2 text-sm transition-colors",
+                                                site === s.url
+                                                    ? "bg-violet-500/20 text-violet-300"
+                                                    : "text-white/60 hover:bg-white/[0.08] hover:text-white/80"
+                                            )}
+                                        >
+                                            {s.name}
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
 
                     {/* Reload button */}
                     <button
