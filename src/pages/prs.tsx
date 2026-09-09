@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     IconBrandGithub,
     IconRefresh,
     IconExternalLink,
     IconLogout,
-    IconCopy,
-    IconCheck,
     IconLoader2,
     IconGitPullRequest,
     IconGitMerge,
@@ -20,6 +18,8 @@ import {
     IconUser,
     IconUsers,
     IconEye,
+    IconKey,
+    IconEyeOff,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -49,13 +49,6 @@ function parseOwnerRepo(htmlUrl: string): { owner: string; repo: string } | null
 
 type ViewMode = "list" | "detail";
 type FilterTab = "all" | "created" | "assigned" | "review-requested";
-
-interface DeviceFlowState {
-    userCode: string;
-    verificationUri: string;
-    expiresIn: number;
-    interval: number;
-}
 
 // ── Animations ──
 
@@ -184,8 +177,6 @@ function PrDetail({
     pr: GithubPrDetail;
     onBack: () => void;
 }) {
-    const parsed = parseOwnerRepo(pr.htmlUrl);
-
     const handleOpenInGitHub = () => {
         window.electronAPI.github.openExternal(pr.htmlUrl);
     };
@@ -314,97 +305,6 @@ function PrDetail({
     );
 }
 
-// ── Device Flow Panel ──
-
-function DeviceFlowPanel({
-    flow,
-    onCancel,
-}: {
-    flow: DeviceFlowState;
-    onCancel: () => void;
-}) {
-    const [copied, setCopied] = useState(false);
-    const [elapsed, setElapsed] = useState(0);
-
-    useEffect(() => {
-        const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const remaining = Math.max(0, flow.expiresIn - elapsed);
-    const minutes = Math.floor(remaining / 60);
-    const seconds = remaining % 60;
-
-    const handleCopy = async () => {
-        await navigator.clipboard.writeText(flow.userCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    const handleVerify = () => {
-        window.electronAPI.github.openExternal(flow.verificationUri);
-    };
-
-    return (
-        <motion.div
-            {...fadeUp}
-            transition={{ duration: 0.4 }}
-            className="flex flex-col items-center gap-6 rounded-2xl border border-white/5 bg-white/[0.02] p-8"
-        >
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-fuchsia-500">
-                <IconBrandGithub size={32} className="text-white" />
-            </div>
-
-            <div className="text-center">
-                <h3 className="text-lg font-semibold text-white/90">
-                    Autenticar con GitHub
-                </h3>
-                <p className="mt-1 text-sm text-white/40">
-                    Ingresa el siguiente codigo en tu navegador
-                </p>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3">
-                <span className="font-mono text-2xl font-bold tracking-[0.3em] text-white/90">
-                    {flow.userCode}
-                </span>
-                <button
-                    onClick={handleCopy}
-                    className="ml-2 rounded-lg p-1.5 text-white/40 transition-all hover:bg-white/5 hover:text-white/70"
-                    title="Copiar codigo"
-                >
-                    {copied ? (
-                        <IconCheck size={16} className="text-green-400" />
-                    ) : (
-                        <IconCopy size={16} />
-                    )}
-                </button>
-            </div>
-
-            <button
-                onClick={handleVerify}
-                className="flex items-center gap-2 text-sm text-violet-400 transition-colors hover:text-violet-300"
-            >
-                <IconExternalLink size={14} />
-                Abrir {flow.verificationUri}
-            </button>
-
-            <div className="flex items-center gap-2 text-xs text-white/30">
-                <IconLoader2 size={12} className="animate-spin" />
-                Esperando confirmacion... {minutes}:{seconds.toString().padStart(2, "0")}
-            </div>
-
-            <button
-                onClick={onCancel}
-                className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs text-white/40 transition-all hover:bg-white/5 hover:text-white/60"
-            >
-                <IconX size={14} />
-                Cancelar
-            </button>
-        </motion.div>
-    );
-}
-
 // ── Filter Tabs ──
 
 const FILTER_TABS: { key: FilterTab; label: string; icon: React.ReactNode }[] = [
@@ -418,27 +318,23 @@ const FILTER_TABS: { key: FilterTab; label: string; icon: React.ReactNode }[] = 
 
 export default function Prs() {
     const [authStatus, setAuthStatus] = useState<GithubAuthStatus>({ authenticated: false });
-    const [deviceFlow, setDeviceFlow] = useState<DeviceFlowState | null>(null);
     const [prs, setPrs] = useState<GithubPrListItem[]>([]);
     const [selectedPr, setSelectedPr] = useState<GithubPrDetail | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingAuth, setIsLoadingAuth] = useState(false);
     const [isLoadingDetail, setIsLoadingDetail] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
     const [viewMode, setViewMode] = useState<ViewMode>("list");
     const [searchQuery, setSearchQuery] = useState("");
 
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [tokenInput, setTokenInput] = useState("");
+    const [showToken, setShowToken] = useState(false);
 
     // ── Auth check on mount ──
 
     useEffect(() => {
         checkAuth();
-        return () => {
-            if (pollRef.current) clearInterval(pollRef.current);
-            if (countdownRef.current) clearInterval(countdownRef.current);
-        };
     }, []);
 
     const checkAuth = async () => {
@@ -469,7 +365,7 @@ export default function Prs() {
             const msg = err instanceof Error ? err.message : String(err);
             if (msg.includes("RATE_LIMITED")) {
                 setError("Rate limit de GitHub alcanzado. Intenta mas tarde.");
-            } else if (msg.includes("UNAUTHENTICATED") || msg.includes("ACCESS_DENIED")) {
+            } else if (msg.includes("UNAUTHENTICATED")) {
                 setError("Sesion expirada. Vuelve a autenticarte.");
                 setAuthStatus({ authenticated: false });
             } else if (msg.includes("NETWORK")) {
@@ -482,40 +378,35 @@ export default function Prs() {
         }
     };
 
-    // ── Device Flow ──
+    // ── Login with PAT ──
 
-    const startDeviceFlow = async () => {
+    const handlePatLogin = async () => {
+        if (!tokenInput.trim()) return;
         setError(null);
+        setIsLoadingAuth(true);
         try {
-            const flow = await window.electronAPI.github.deviceFlowStart();
-            setDeviceFlow(flow);
-
-            // Start polling
-            pollRef.current = setInterval(async () => {
-                try {
-                    const result = await window.electronAPI.github.deviceFlowWait();
-                    if (result.authenticated) {
-                        setAuthStatus(result);
-                        setDeviceFlow(null);
-                        if (pollRef.current) clearInterval(pollRef.current);
-                        loadPrs("all");
-                    }
-                } catch {
-                    // deviceFlowWait rejected = still waiting or expired
-                }
-            }, (flow.interval || 5) * 1000);
-        } catch {
-            setError("Error al iniciar Device Flow. Intenta de nuevo.");
+            const result = await window.electronAPI.github.loginPat(tokenInput.trim());
+            setAuthStatus(result);
+            setTokenInput("");
+            setShowToken(false);
+            loadPrs("all");
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            if (msg.includes("401") || msg.includes("Bad credentials")) {
+                setError("Token invalido. Verifica que sea un Personal Access Token valido.");
+            } else if (msg.includes("NETWORK")) {
+                setError("Error de red. Verifica tu conexion a internet.");
+            } else {
+                setError("Error al autenticar: " + msg);
+            }
+        } finally {
+            setIsLoadingAuth(false);
         }
     };
 
-    const cancelDeviceFlow = async () => {
-        if (pollRef.current) clearInterval(pollRef.current);
-        setDeviceFlow(null);
-        try {
-            await window.electronAPI.github.deviceFlowCancel();
-        } catch {
-            // ignore
+    const handlePatKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            handlePatLogin();
         }
     };
 
@@ -582,9 +473,49 @@ export default function Prs() {
         );
     });
 
+    // ── Loading state ──
+
+    if (isLoadingAuth) {
+        return (
+            <div className="flex flex-col gap-6">
+                <motion.section
+                    {...fadeUp}
+                    transition={{ duration: 0.6 }}
+                    className="relative overflow-hidden rounded-2xl bg-white/[0.02] p-6 md:p-8"
+                >
+                    <div className="relative z-10 flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-fuchsia-500">
+                            <IconBrandGithub size={24} className="text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-white/90">
+                                GitHub PRs
+                            </h1>
+                            <p className="text-sm text-white/40">
+                                Conectando con GitHub...
+                            </p>
+                        </div>
+                    </div>
+                    <div className="pointer-events-none absolute top-0 right-0 h-48 w-48 rounded-full bg-violet-600/10 blur-[80px]" />
+                </motion.section>
+
+                <motion.div
+                    {...fadeUp}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="flex flex-col items-center gap-6 rounded-2xl border border-white/5 bg-white/[0.02] p-12"
+                >
+                    <IconLoader2 size={32} className="animate-spin text-violet-400" />
+                    <p className="text-sm text-white/40">
+                        Validando token...
+                    </p>
+                </motion.div>
+            </div>
+        );
+    }
+
     // ── Render: Not Authenticated ──
 
-    if (!authStatus.authenticated && !deviceFlow) {
+    if (!authStatus.authenticated) {
         return (
             <div className="flex flex-col gap-6">
                 <motion.section
@@ -611,71 +542,70 @@ export default function Prs() {
                 <motion.div
                     {...fadeUp}
                     transition={{ duration: 0.6, delay: 0.1 }}
-                    className="flex flex-col items-center gap-6 rounded-2xl border border-white/5 bg-white/[0.02] p-12"
+                    className="flex flex-col items-center gap-6 rounded-2xl border border-white/5 bg-white/[0.02] p-8 md:p-12"
                 >
                     <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.04]">
                         <IconBrandGithub size={40} className="text-white/20" />
                     </div>
+
                     <div className="text-center">
                         <h3 className="text-lg font-semibold text-white/80">
-                            Conecta tu cuenta de GitHub
+                            Conectar con GitHub
                         </h3>
-                        <p className="mt-2 max-w-sm text-sm text-white/40">
-                            Autenticate para ver y gestionar tus Pull Requests
-                            directamente desde la app.
-                        </p>
+                        <div className="mt-3 max-w-sm space-y-2 text-sm text-white/40">
+                            <p>1. Andá a <a
+                                href="https://github.com/settings/tokens"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    window.electronAPI.github.openExternal("https://github.com/settings/tokens");
+                                }}
+                                className="inline-flex items-center gap-1 text-violet-400 underline decoration-violet-400/30 underline-offset-2 transition-colors hover:text-violet-300"
+                            >github.com/settings/tokens</a></p>
+                            <p>2. Creá un token con permisos <span className="font-medium text-white/60">'repo'</span></p>
+                            <p>3. Pegalo abajo</p>
+                        </div>
                     </div>
+
                     {error && (
                         <div className="flex items-center gap-2 rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-300">
                             <IconAlertCircle size={16} />
                             {error}
                         </div>
                     )}
-                    <button
-                        onClick={startDeviceFlow}
-                        className="flex items-center gap-2 rounded-xl bg-violet-500/20 px-6 py-3 text-sm font-medium text-violet-300 transition-all hover:bg-violet-500/30"
-                    >
-                        <IconBrandGithub size={16} />
-                        Autenticar con GitHub
-                    </button>
-                </motion.div>
-            </div>
-        );
-    }
 
-    // ── Render: Device Flow ──
+                    <div className="w-full max-w-sm">
+                        <div className="relative">
+                            <IconKey
+                                size={16}
+                                className="absolute top-1/2 left-3 -translate-y-1/2 text-white/25"
+                            />
+                            <input
+                                type={showToken ? "text" : "password"}
+                                value={tokenInput}
+                                onChange={(e) => setTokenInput(e.target.value)}
+                                onKeyDown={handlePatKeyDown}
+                                placeholder="ghp_xxxxxxxxxxxx"
+                                className="w-full rounded-xl border border-white/10 bg-white/[0.03] py-3 pr-10 pl-10 text-sm text-white/80 placeholder-white/25 outline-none transition-all focus:border-violet-500/50"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowToken(!showToken)}
+                                className="absolute top-1/2 right-3 -translate-y-1/2 p-1 text-white/30 transition-colors hover:text-white/60"
+                            >
+                                {showToken ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                            </button>
+                        </div>
 
-    if (deviceFlow) {
-        return (
-            <div className="flex flex-col gap-6">
-                <motion.section
-                    {...fadeUp}
-                    transition={{ duration: 0.6 }}
-                    className="relative overflow-hidden rounded-2xl bg-white/[0.02] p-6 md:p-8"
-                >
-                    <div className="relative z-10 flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-fuchsia-500">
-                            <IconBrandGithub size={24} className="text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-white/90">
-                                GitHub PRs
-                            </h1>
-                            <p className="text-sm text-white/40">
-                                Autenticacion en progreso
-                            </p>
-                        </div>
+                        <button
+                            onClick={handlePatLogin}
+                            disabled={!tokenInput.trim()}
+                            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-500/20 px-6 py-3 text-sm font-medium text-violet-300 transition-all hover:bg-violet-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            <IconBrandGithub size={16} />
+                            Conectar
+                        </button>
                     </div>
-                    <div className="pointer-events-none absolute top-0 right-0 h-48 w-48 rounded-full bg-violet-600/10 blur-[80px]" />
-                </motion.section>
-
-                <AnimatePresence mode="wait">
-                    <DeviceFlowPanel
-                        key="device-flow"
-                        flow={deviceFlow}
-                        onCancel={cancelDeviceFlow}
-                    />
-                </AnimatePresence>
+                </motion.div>
             </div>
         );
     }

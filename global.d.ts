@@ -77,13 +77,6 @@ type GithubAuthStatus =
     | { authenticated: false }
     | { authenticated: true; user: GithubUserPublic };
 
-interface GithubDeviceFlowStart {
-    userCode: string;
-    verificationUri: string;
-    expiresIn: number;
-    interval: number;
-}
-
 interface GithubPrListItem {
     id: number;
     number: number;
@@ -114,21 +107,15 @@ interface GithubListFilter {
 
 type GithubIpcErrorCode =
     | "UNAUTHENTICATED"
-    | "CANCELLED"
-    | "EXPIRED"
-    | "ACCESS_DENIED"
     | "RATE_LIMITED"
     | "NETWORK"
     | "INVALID_URL"
-    | "SAFE_STORAGE_UNAVAILABLE"
     | "UNKNOWN";
 
 interface GithubApi {
     getStatus(): Promise<GithubAuthStatus>;
-    deviceFlowStart(): Promise<GithubDeviceFlowStart>;
-    deviceFlowWait(): Promise<GithubAuthStatus>;
-    deviceFlowCancel(): Promise<void>;
-    loginPat?(token: string): Promise<GithubAuthStatus>;
+    loginPat(token: string): Promise<GithubAuthStatus>;
+    saveToken(token: string): Promise<{ ok: boolean }>;
     logout(): Promise<void>;
     prsList(filter?: GithubListFilter): Promise<GithubPrListItem[]>;
     prsGet(owner: string, repo: string, number: number): Promise<GithubPrDetail>;
