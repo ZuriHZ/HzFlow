@@ -332,6 +332,7 @@ export default function Prs() {
 
     const [tokenInput, setTokenInput] = useState("");
     const [showToken, setShowToken] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
 
     // ── Auth check on mount ──
 
@@ -348,6 +349,8 @@ export default function Prs() {
             }
         } catch {
             setAuthStatus({ authenticated: false });
+        } finally {
+            setIsInitialLoading(false);
         }
     };
 
@@ -474,6 +477,43 @@ export default function Prs() {
             pr.author.toLowerCase().includes(q)
         );
     });
+
+    // ── Initial loading state (auth check not yet completed) ──
+
+    if (isInitialLoading) {
+        return (
+            <div className="flex flex-col gap-6">
+                <motion.section
+                    {...fadeUp}
+                    transition={{ duration: 0.6 }}
+                    className="relative overflow-hidden rounded-2xl bg-white/[0.02] p-6 md:p-8"
+                >
+                    <div className="relative z-10 flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-fuchsia-500">
+                            <IconBrandGithub size={24} className="text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-white/90">
+                                GitHub PRs
+                            </h1>
+                            <p className="text-sm text-white/40">
+                                Verificando sesión...
+                            </p>
+                        </div>
+                    </div>
+                    <div className="pointer-events-none absolute top-0 right-0 h-48 w-48 rounded-full bg-violet-600/10 blur-[80px]" />
+                </motion.section>
+
+                <motion.div
+                    {...fadeUp}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="flex flex-col items-center gap-6 rounded-2xl border border-white/5 bg-white/[0.02] p-12"
+                >
+                    <IconLoader2 size={32} className="animate-spin text-violet-400" />
+                </motion.div>
+            </div>
+        );
+    }
 
     // ── Loading state ──
 
