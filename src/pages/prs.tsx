@@ -25,7 +25,7 @@ import {
     IconInfoCircle,
     IconMessage,
     IconFileCode,
-    IconGitPullRequestArrow,
+
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -330,7 +330,7 @@ function PrDetail({
                 </div>
 
                 {/* Reviewers */}
-                {(pr.reviewers.length > 0 || pr.reviewTeams.length > 0) && (
+                {((pr.reviewers?.length ?? 0) > 0 || (pr.reviewTeams?.length ?? 0) > 0) && (
                     <div className="mt-4 rounded-lg border border-white/5 bg-white/[0.02] p-3">
                         <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-white/30">
                             Revisores pendientes
