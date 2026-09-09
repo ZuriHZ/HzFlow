@@ -139,6 +139,18 @@ async function getPullRequest(token, owner, repo, number) {
         baseRef: pr.base ? pr.base.ref : undefined,
         headRef: pr.head ? pr.head.ref : undefined,
         checksSummary: null,
+        reviewers: (pr.requested_reviewers || []).map((r) => ({ login: r.login, avatarUrl: r.avatar_url })),
+        reviewTeams: (pr.requested_teams || []).map((t) => t.name),
+        commits: pr.commits || 0,
+        additions: pr.additions || 0,
+        deletions: pr.deletions || 0,
+        changedFiles: pr.changed_files || 0,
+        reviewComments: pr.review_comments || 0,
+        mergeable: pr.mergeable ?? null,
+        mergeState: pr.mergeable_state || null,
+        mergedBy: pr.merged_by ? pr.merged_by.login : null,
+        diffUrl: pr.diff_url || null,
+        headRepo: pr.head && pr.head.repo ? pr.head.repo.full_name : null,
     };
 }
 

@@ -97,6 +97,18 @@ interface GithubPrDetail extends GithubPrListItem {
     baseRef?: string;
     headRef?: string;
     checksSummary?: { state: string; totalCount?: number } | null;
+    reviewers: { login: string; avatarUrl?: string }[];
+    reviewTeams: string[];
+    commits: number;
+    additions: number;
+    deletions: number;
+    changedFiles: number;
+    reviewComments: number;
+    mergeable: boolean | null;
+    mergeState: string | null;
+    mergedBy: string | null;
+    diffUrl: string | null;
+    headRepo: string | null;
 }
 
 interface GithubListFilter {

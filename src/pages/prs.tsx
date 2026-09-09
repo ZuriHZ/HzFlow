@@ -9,6 +9,7 @@ import {
     IconGitPullRequest,
     IconGitMerge,
     IconGitBranch,
+    IconGitCommit,
     IconAlertCircle,
     IconSearch,
     IconClock,
@@ -22,6 +23,9 @@ import {
     IconEyeOff,
     IconAlertTriangle,
     IconInfoCircle,
+    IconMessage,
+    IconFileCode,
+    IconGitPullRequestArrow,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -293,7 +297,130 @@ function PrDetail({
                     </div>
                 )}
 
+                {/* Stats bar */}
+                <div className="mt-4 grid grid-cols-4 gap-2">
+                    <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
+                        <IconGitCommit size={14} className="shrink-0 text-white/40" />
+                        <div>
+                            <div className="text-[10px] text-white/30">Commits</div>
+                            <div className="text-xs font-medium text-white/70">{pr.commits}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
+                        <span className="shrink-0 text-sm leading-none text-green-400">+</span>
+                        <div>
+                            <div className="text-[10px] text-white/30">Adiciones</div>
+                            <div className="text-xs font-medium text-green-400">{pr.additions}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
+                        <span className="shrink-0 text-sm leading-none text-red-400">−</span>
+                        <div>
+                            <div className="text-[10px] text-white/30">Eliminaciones</div>
+                            <div className="text-xs font-medium text-red-400">{pr.deletions}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
+                        <IconFileCode size={14} className="shrink-0 text-white/40" />
+                        <div>
+                            <div className="text-[10px] text-white/30">Archivos</div>
+                            <div className="text-xs font-medium text-white/70">{pr.changedFiles}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Reviewers */}
+                {(pr.reviewers.length > 0 || pr.reviewTeams.length > 0) && (
+                    <div className="mt-4 rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-white/30">
+                            Revisores pendientes
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {pr.reviewers.map((reviewer) => (
+                                <div
+                                    key={reviewer.login}
+                                    className="flex items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1"
+                                >
+                                    {reviewer.avatarUrl ? (
+                                        <img
+                                            src={reviewer.avatarUrl}
+                                            alt={reviewer.login}
+                                            className="h-4 w-4 rounded-full"
+                                        />
+                                    ) : (
+                                        <IconUser size={12} className="text-white/40" />
+                                    )}
+                                    <span className="text-xs text-white/60">{reviewer.login}</span>
+                                </div>
+                            ))}
+                            {pr.reviewTeams.map((team) => (
+                                <div
+                                    key={team}
+                                    className="flex items-center gap-1.5 rounded-md bg-violet-500/10 px-2 py-1"
+                                >
+                                    <IconUsers size={12} className="text-violet-400/70" />
+                                    <span className="text-xs text-violet-300/70">{team}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Merge status */}
+                {(pr.mergeable !== null || pr.mergedBy) && (
+                    <div className="mt-4 rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-white/30">
+                            Estado de merge
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
+                            {pr.mergeable !== null && (
+                                <div className="flex items-center gap-1.5">
+                                    {pr.mergeable ? (
+                                        <span className="text-green-400">Mergeable</span>
+                                    ) : (
+                                        <span className="text-amber-400">Conflicto</span>
+                                    )}
+                                </div>
+                            )}
+                            {pr.mergedBy && (
+                                <div className="flex items-center gap-1.5">
+                                    <IconGitMerge size={12} className="text-purple-400" />
+                                    <span>Mergeado por <span className="text-white/80">{pr.mergedBy}</span></span>
+                                </div>
+                            )}
+                            {pr.reviewComments > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                    <IconMessage size={12} className="text-white/40" />
+                                    <span>{pr.reviewComments} comentarios</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Head repo info */}
+                {pr.headRepo && pr.headRepo !== pr.repository && (
+                    <div className="mt-4 rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                        <div className="text-[10px] font-medium uppercase tracking-wider text-white/30">
+                            Repo fuente
+                        </div>
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-white/60">
+                            <IconGitBranch size={12} />
+                            {pr.headRepo}
+                        </div>
+                    </div>
+                )}
+
                 <div className="mt-4 flex gap-2">
+                    {pr.diffUrl && (
+                        <button
+                            onClick={() => window.electronAPI.github.openExternal(pr.diffUrl!)}
+                            className="flex items-center gap-2 rounded-lg bg-white/[0.06] px-4 py-2 text-xs font-medium text-white/70 transition-all hover:bg-white/[0.1] hover:text-white/90"
+                        >
+                            <IconFileCode size={14} />
+                            Ver Diff
+                        </button>
+                    )}
                     <button
                         onClick={handleOpenInGitHub}
                         className="flex items-center gap-2 rounded-lg bg-white/[0.06] px-4 py-2 text-xs font-medium text-white/70 transition-all hover:bg-white/[0.1] hover:text-white/90"
