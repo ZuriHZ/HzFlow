@@ -184,4 +184,46 @@ interface ElectronAPI {
 
     // GitHub
     github: GithubApi;
+
+    // Updater
+    updater: UpdaterApi;
 }
+
+// ── Updater Types ──
+
+interface UpdaterApi {
+    checkForUpdates: () => Promise<UpdaterCheckResult>;
+    downloadUpdate: () => Promise<{ ok: boolean; error?: UpdaterIpcError }>;
+    quitAndInstall: () => Promise<void>;
+
+    // Event listeners — returns unsubscribe function
+    onChecking: (callback: () => void) => (() => void) | undefined;
+    onAvailable: (callback: (info: UpdaterVersionInfo) => void) => (() => void) | undefined;
+    onNotAvailable: (callback: () => void) => (() => void) | undefined;
+    onProgress: (callback: (progress: UpdaterDownloadProgress) => void) => (() => void) | undefined;
+    onDownloaded: (callback: (info: UpdaterVersionInfo) => void) => (() => void) | undefined;
+    onError: (callback: (error: UpdaterIpcError) => void) => (() => void) | undefined;
+}
+
+interface UpdaterVersionInfo {
+    version: string;
+    releaseDate?: string;
+    releaseNotes?: string;
+}
+
+interface UpdaterDownloadProgress {
+    percent: number;
+    bytesPerSecond: number;
+    total: number;
+    transferred: number;
+}
+
+interface UpdaterIpcError {
+    code: string;
+    message: string;
+}
+
+type UpdaterCheckResult =
+    | { state: "available"; info: UpdaterVersionInfo }
+    | { state: "not-available" }
+    | { state: "error"; error: UpdaterIpcError };

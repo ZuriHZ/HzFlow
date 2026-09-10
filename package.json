@@ -12,6 +12,7 @@
     "license": "ISC",
     "description": "",
     "devDependencies": {
+        "@aws-sdk/client-s3": "^3.1129.0",
         "@babel/core": "^7.28.0",
         "@babel/preset-env": "^7.28.0",
         "@babel/preset-react": "^7.27.1",
@@ -38,6 +39,7 @@
         "autoprefixer": "^10.4.21",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "electron-updater": "^6.8.9",
         "framer-motion": "^12.23.1",
         "lucide-react": "^0.511.0",
         "motion": "^12.23.1",
@@ -53,7 +55,7 @@
         "zustand": "^5.0.15"
     },
     "build": {
-        "appId": "com.tuempresa.tuapp",
+        "appId": "com.zurihz.zuri",
         "productName": "ZuriHZ",
         "icon": "public/assets/zurihz.ico",
         "directories": {
@@ -68,6 +70,11 @@
         "extraMetadata": {
             "main": "electron/main.js"
         },
+        "publish": {
+            "provider": "s3",
+            "bucket": "zurihz-updates",
+            "region": "auto"
+        },
         "win": {
             "target": "nsis",
             "icon": "public/assets/zurihz.ico"
@@ -81,5 +88,5 @@
             "icon": "public/assets/zurihz.ico"
         }
     },
-    "packageManager": "pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af"
+    "packageManager": "pnpm@12.3.4+sha512.961aa41fb077da3a04a441d9f8e15ebc0c96da8ef710b2eb67bf9ee7cb0610eabd48f1fd85f51cffe73846785fa0f87c56a3a872a1d893f8446741b5cce45457"
 }

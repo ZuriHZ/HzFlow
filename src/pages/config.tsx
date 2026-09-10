@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconSettings, IconCheck, IconX } from "@tabler/icons-react";
+import { useUpdater } from "@/features/updater/hooks/useUpdater";
+import {
+    UpdateNotification,
+    UpdateProgress,
+    UpdateReady,
+} from "@/features/updater/components";
 
 const defaultConfig = {
     darkMode: false,
@@ -16,6 +22,9 @@ const Config = () => {
     const [feedback, setFeedback] = useState<"saved" | "cancelled" | null>(
         null,
     );
+
+    // ── Updater ──
+    const updater = useUpdater();
 
     useEffect(() => {
         document.documentElement.classList.toggle("dark", config.darkMode);
@@ -130,6 +139,52 @@ const Config = () => {
                                     ${config.notifications ? "left-[22px]" : "left-0.5"}`}
                             />
                         </button>
+                    </div>
+                </div>
+
+                {/* Updater section */}
+                <div className="rounded-xl bg-white/[0.03] border border-white/5 divide-y divide-white/5">
+                    <div className="px-5 py-3">
+                        <h2 className="text-sm font-semibold text-white/60">
+                            Actualizaciones
+                        </h2>
+                    </div>
+
+                    <div className="p-5 space-y-3">
+                        {/* Notification: shows check button or available update */}
+                        <UpdateNotification
+                            state={updater.state}
+                            updateInfo={updater.updateInfo}
+                            onCheck={updater.checkForUpdates}
+                            onDownload={updater.downloadUpdate}
+                        />
+
+                        {/* Progress bar: shows during download */}
+                        {updater.state === "downloading" && updater.progress && (
+                            <UpdateProgress
+                                percent={updater.progress.percent}
+                                bytesPerSecond={updater.progress.bytesPerSecond}
+                                transferred={updater.progress.transferred}
+                                total={updater.progress.total}
+                            />
+                        )}
+
+                        {/* Ready: shows after download completes */}
+                        {updater.state === "downloaded" && (
+                            <UpdateReady
+                                updateInfo={updater.updateInfo}
+                                onRestart={updater.quitAndInstall}
+                            />
+                        )}
+
+                        {/* Error state */}
+                        {updater.state === "error" && updater.error && (
+                            <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3">
+                                <p className="text-xs text-red-400">
+                                    Error: {updater.error.message}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
