@@ -7,6 +7,8 @@ const { setupProjectsHandlers } = require("./ipc/projectsHandlers");
 const { setupBookmarksHandlers } = require("./ipc/bookmarksHandlers");
 const { setupNotificationsHandlers } = require("./ipc/notificationsHandlers");
 const { setupGithubHandlers } = require("./github/ipc");
+const { initAutoUpdater } = require("./updater");
+const { setupUpdaterIpc } = require("./ipc/updaterHandlers");
 
 const isDev = !app.isPackaged;
 let mainWindow;
@@ -29,6 +31,10 @@ app.whenReady().then(() => {
 
     // 5. Configurar manejadores IPC de GitHub
     setupGithubHandlers();
+
+    // 6. Configurar auto-updater (chequeo automático + handlers IPC)
+    setupUpdaterIpc();
+    initAutoUpdater();
 });
 
 // Manejo correcto del cierre de la aplicación

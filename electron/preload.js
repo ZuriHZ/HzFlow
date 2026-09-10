@@ -56,4 +56,28 @@ contextBridge.exposeInMainWorld("electronAPI", {
         prsGet: (owner, repo, number) => ipcRenderer.invoke("github:prs:get", { owner, repo, number }),
         openExternal: (url) => ipcRenderer.invoke("github:open-external", { url }),
     },
+
+    // ── Updater ──
+    // Permite al renderer controlar las actualizaciones.
+    // Solo expone acciones y eventos, nunca credenciales.
+    updater: {
+        // Disparar un chequeo de actualizaciones manualmente
+        checkForUpdates: () => ipcRenderer.invoke("updater:check-for-update"),
+        // Iniciar la descarga de la actualización
+        downloadUpdate: () => ipcRenderer.invoke("updater:download-update"),
+        // Cerrar la app e instalar la actualización
+        quitAndInstall: () => ipcRenderer.invoke("updater:quit-and-install"),
+
+        // ── Event listeners ──
+        // Estos métodos registran callbacks que se llaman
+        // cuando el main process envía eventos del updater.
+        // Cada uno recibe un channel específico del updater.
+
+        onChecking: (callback) => ipcRenderer.on("updater:on-checking", callback),
+        onAvailable: (callback) => ipcRenderer.on("updater:on-available", (_event, info) => callback(info)),
+        onNotAvailable: (callback) => ipcRenderer.on("updater:on-not-available", callback),
+        onProgress: (callback) => ipcRenderer.on("updater:on-progress", (_event, progress) => callback(progress)),
+        onDownloaded: (callback) => ipcRenderer.on("updater:on-downloaded", (_event, info) => callback(info)),
+        onError: (callback) => ipcRenderer.on("updater:on-error", (_event, error) => callback(error)),
+    },
 });
