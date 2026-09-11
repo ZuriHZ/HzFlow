@@ -1,0 +1,17 @@
+change: bookmarks-manager
+mode: openspec
+phase: proposal
+artifacts:
+  proposal: openspec/changes/bookmarks-manager/proposal.md
+  specs: pending
+  design: pending
+  tasks: pending
+  apply: pending
+  verify: pending
+  archive: pending
+created_at: "2026-09-05"
+updated_at: "2026-09-05"
+notes: |
+  Module: Bookmarks Manager - links con categorías, tags, import/export.
+  Depende de external-windows para ventana custom.
+  Priority: Media - organización.

@@ -1,0 +1,6 @@
+change: external-windows
+created: 2026-09-03T15:30:00Z
+phase: proposal
+artifacts:
+  proposal: openspec/changes/external-windows/proposal.md
+  design: openspec/changes/external-windows/design.md

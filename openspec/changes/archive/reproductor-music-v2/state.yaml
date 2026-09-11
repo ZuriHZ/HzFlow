@@ -1,0 +1,17 @@
+change: reproductor-music-v2
+mode: openspec
+phase: done
+artifacts:
+  proposal: done
+  specs: done
+  design: done
+  tasks: done
+  apply: done
+  verify: done
+  archive: pending
+updated_at: "2026-09-01"
+notes: |
+  Phase 1: Fixes (botones Next/Prev, código muerto, race condition)
+  Phase 2: Metadata ID3 (music-metadata, cover, artist, album, duration)
+  Phase 3: UX (MediaSession, atajos teclado, búsqueda playlist, tiempo restante)
+  Phase 4: Verificación (build + smoke test exitosos)
