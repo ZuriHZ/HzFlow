@@ -10,6 +10,8 @@ interface WindowControl {
     className?: string;
 }
 
+const isDev = import.meta.env.DEV;
+
 const windowControls: WindowControl[] = [
     {
         id: "minimize-btn",
@@ -30,13 +32,17 @@ const windowControls: WindowControl[] = [
         title: "Cerrar",
         className: "hover:!bg-red-500 hover:!text-white",
     },
-    {
-        id: "dev-tools",
-        icon: <IconCode size={16} />,
-        onClick: () => window.electronAPI?.toggleDevTools?.(),
-        title: "Herramientas de desarrollador",
-        className: "hover:!bg-violet-500 hover:!text-white",
-    },
+    ...(isDev
+        ? [
+              {
+                  id: "dev-tools",
+                  icon: <IconCode size={16} />,
+                  onClick: () => window.electronAPI?.toggleDevTools?.(),
+                  title: "Herramientas de desarrollador",
+                  className: "hover:!bg-violet-500 hover:!text-white",
+              },
+          ]
+        : []),
 ];
 export default function TitleBar() {
     return (
