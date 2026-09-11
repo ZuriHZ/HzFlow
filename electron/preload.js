@@ -73,11 +73,35 @@ contextBridge.exposeInMainWorld("electronAPI", {
         // cuando el main process envía eventos del updater.
         // Cada uno recibe un channel específico del updater.
 
-        onChecking: (callback) => ipcRenderer.on("updater:on-checking", callback),
-        onAvailable: (callback) => ipcRenderer.on("updater:on-available", (_event, info) => callback(info)),
-        onNotAvailable: (callback) => ipcRenderer.on("updater:on-not-available", callback),
-        onProgress: (callback) => ipcRenderer.on("updater:on-progress", (_event, progress) => callback(progress)),
-        onDownloaded: (callback) => ipcRenderer.on("updater:on-downloaded", (_event, info) => callback(info)),
-        onError: (callback) => ipcRenderer.on("updater:on-error", (_event, error) => callback(error)),
+        onChecking: (callback) => {
+            const handler = () => callback();
+            ipcRenderer.on("updater:on-checking", handler);
+            return () => ipcRenderer.removeListener("updater:on-checking", handler);
+        },
+        onAvailable: (callback) => {
+            const handler = (_event, info) => callback(info);
+            ipcRenderer.on("updater:on-available", handler);
+            return () => ipcRenderer.removeListener("updater:on-available", handler);
+        },
+        onNotAvailable: (callback) => {
+            const handler = () => callback();
+            ipcRenderer.on("updater:on-not-available", handler);
+            return () => ipcRenderer.removeListener("updater:on-not-available", handler);
+        },
+        onProgress: (callback) => {
+            const handler = (_event, progress) => callback(progress);
+            ipcRenderer.on("updater:on-progress", handler);
+            return () => ipcRenderer.removeListener("updater:on-progress", handler);
+        },
+        onDownloaded: (callback) => {
+            const handler = (_event, info) => callback(info);
+            ipcRenderer.on("updater:on-downloaded", handler);
+            return () => ipcRenderer.removeListener("updater:on-downloaded", handler);
+        },
+        onError: (callback) => {
+            const handler = (_event, error) => callback(error);
+            ipcRenderer.on("updater:on-error", handler);
+            return () => ipcRenderer.removeListener("updater:on-error", handler);
+        },
     },
 });

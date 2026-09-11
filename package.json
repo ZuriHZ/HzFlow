@@ -6,7 +6,10 @@
         "dev": "concurrently \"vite\" \"electron .\"",
         "build": "vite build",
         "start": "electron .",
-        "dist": "npm run build && electron-builder"
+        "dist": "npm run build && electron-builder",
+        "upload": "tsx scripts/upload-to-r2.ts",
+        "upload:dry": "tsx scripts/upload-to-r2.ts --dry-run",
+        "upload:clean": "tsx scripts/upload-to-r2.ts --clean"
     },
     "author": "zurihz",
     "license": "ISC",
@@ -29,6 +32,7 @@
         "postcss-loader": "^8.1.1",
         "standard": "^17.1.2",
         "style-loader": "^4.0.0",
+        "tsx": "^4.23.13",
         "tw-animate-css": "^1.3.5",
         "typescript": "^5.8.3",
         "vite": "^6.3.5"
@@ -39,6 +43,7 @@
         "autoprefixer": "^10.4.21",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "electron-log": "^5.4.4",
         "electron-updater": "^6.8.9",
         "framer-motion": "^12.23.1",
         "lucide-react": "^0.511.0",

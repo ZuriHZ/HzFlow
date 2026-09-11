@@ -11,6 +11,9 @@ autoUpdater.autoDownload = false;
 // No instalar automáticamente al cerrar la app
 autoUpdater.autoInstallOnAppQuit = false;
 
+// Forzar check en dev mode (por default electron-updater lo salta)
+autoUpdater.forceDevUpdateConfig = true;
+
 // Configurar logging
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";

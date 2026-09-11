@@ -58,7 +58,11 @@ export function useUpdater() {
         setProgress(null);
 
         try {
-            const result = await window.electronAPI.updater.checkForUpdates();
+            // Delay mínimo de 3s para que el usuario vea el spinner
+            const result = await Promise.all([
+                window.electronAPI.updater.checkForUpdates(),
+                new Promise((resolve) => setTimeout(resolve, 3000)),
+            ]).then(([res]) => res);
 
             if (result.state === "available") {
                 setUpdateInfo(result.info);
