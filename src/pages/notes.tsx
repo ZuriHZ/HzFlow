@@ -43,7 +43,7 @@ export default function Notes() {
             <motion.section
                 {...fadeUp}
                 transition={{ duration: 0.6 }}
-                className="relative overflow-hidden rounded-2xl bg-white/[0.02] p-6 md:p-8"
+                className="relative overflow-hidden rounded-2xl bg-white/2 p-6 md:p-8"
             >
                 <div className="relative z-10 flex items-center gap-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-fuchsia-500">
@@ -64,7 +64,7 @@ export default function Notes() {
             <motion.section
                 {...fadeUp}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="flex h-[calc(100vh-220px)] overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02]"
+                className="flex h-[calc(100vh-220px)] overflow-hidden rounded-2xl border border-white/5 bg-white/2"
             >
                 <NotesList
                     notes={notes}

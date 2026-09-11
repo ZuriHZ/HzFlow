@@ -74,8 +74,8 @@ const Blog = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 + i * 0.1 }}
-                        className="group p-5 rounded-xl bg-white/[0.03] border border-white/5 
-                            hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300 cursor-pointer"
+                        className="group p-5 rounded-xl bg-white/3 border border-white/5 
+                            hover:bg-white/6 hover:border-white/10 transition-all duration-300 cursor-pointer"
                     >
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-2">
@@ -97,7 +97,7 @@ const Blog = () => {
                                     {post.excerpt}
                                 </p>
                             </div>
-                            <div className="flex-shrink-0 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="shrink-0 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <IconArrowRight
                                     size={18}
                                     className="text-white/40"
