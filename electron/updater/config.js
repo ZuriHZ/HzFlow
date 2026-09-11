@@ -12,21 +12,12 @@ autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = false;
 
 // Forzar check en dev mode (por default electron-updater lo salta)
+// En dev: lee de dev-app-update.yml en la raíz del proyecto
+// En prod: lee de la config "publish" en package.json
 autoUpdater.forceDevUpdateConfig = true;
 
 // Configurar logging
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
-
-// Configurar el provider S3 (Cloudflare R2)
-// Las credenciales se inyectan en el build via publish config en package.json
-autoUpdater.setFeedURL({
-    provider: "s3",
-    bucket: process.env.R2_BUCKET_NAME || "zurihz-updates",
-    region: "auto",
-    endpoint: process.env.R2_ENDPOINT || undefined,
-    // accessKeyId y secretAccessKey se leen de las variables de entorno
-    // o de la config de electron-builder en package.json
-});
 
 module.exports = { autoUpdater };

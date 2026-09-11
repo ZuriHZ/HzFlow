@@ -1,3 +1,4 @@
 provider: s3
 bucket: zurihz-updates
 region: auto
+endpoint: https://ff744967e8e4d45e4656b67b1a9a67f3.r2.cloudflarestorage.com
