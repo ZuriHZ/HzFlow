@@ -1,15 +1,19 @@
 change: github-prs
 mode: openspec
-phase: tasks
+phase: apply
 artifacts:
-  proposal: done
-  specs: done
-  design: done
-  tasks: done
-  apply: pending
+  proposal: openspec/changes/github-prs/proposal.md
+  specs: openspec/changes/github-prs/specs
+  design: openspec/changes/github-prs/design.md
+  tasks: openspec/changes/github-prs/tasks.md
+  apply: in-progress
   verify: pending
   archive: pending
-updated_at: "2026-08-24"
+created_at: "2026-08-24"
+updated_at: "2026-09-10"
 notes: |
   Scope lock: ONLY in-app GitHub PRs. No multi-window manager.
-  Auth: Device Flow + safeStorage in main. openExternal allowlisted.
+  Auth: PAT login funcional. Device Flow pendiente.
+  IPC: get-status, prs list/get, open-external, logout.
+  UI: prs.tsx con listado, detalle, refresh, logout.
+  Pendientes: deviceFlow.js, Device Flow UI, guards, cleanup.
