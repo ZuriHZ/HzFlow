@@ -72,7 +72,7 @@ function setupUpdaterIpc() {
     ipcMain.handle("updater:quit-and-install", async () => {
         // quitAndInstall cierra la app y ejecuta el instalador
         // No retorna nada porque la app se cierra
-        autoUpdater.quitAndInstall(false, true);
+        autoUpdater.quitAndInstall(true, false);
     });
 
     console.log("[Updater] IPC handlers registered");

@@ -76,10 +76,8 @@
             "main": "electron/main.js"
         },
         "publish": {
-            "provider": "s3",
-            "bucket": "zurihz-updates",
-            "region": "auto",
-            "endpoint": "https://ff744967e8e4d45e4656b67b1a9a67f3.r2.cloudflarestorage.com"
+            "provider": "generic",
+            "url": "https://pub-f9fbdbe46d1d4765ba6c77821e4bacde.r2.dev/releases"
         },
         "win": {
             "target": "nsis",
