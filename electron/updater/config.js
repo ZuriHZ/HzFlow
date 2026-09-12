@@ -5,11 +5,11 @@ const log = require("electron-log");
 // Configuración del auto-updater
 // ──────────────────────────────────────────────
 
-// Desactivar descarga automática — el usuario decide cuándo actualizar
-autoUpdater.autoDownload = false;
+// Descarga automática en background — silencioso como VS Code/Telegram
+autoUpdater.autoDownload = true;
 
-// No instalar automáticamente al cerrar la app
-autoUpdater.autoInstallOnAppQuit = false;
+// Instalar automáticamente cuando la app se cierre (fallback si NSIS no relanza)
+autoUpdater.autoInstallOnAppQuit = true;
 
 // Forzar check en dev mode (por default electron-updater lo salta)
 // En dev: lee de dev-app-update.yml en la raíz del proyecto

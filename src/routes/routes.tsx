@@ -12,6 +12,7 @@ import Blog from "@/pages/blog";
 import Config from "@/pages/config";
 import Extras from "@/pages/extras";
 import Features from "@/pages/features";
+import Shortcuts from "@/pages/shortcuts";
 import Home from "@/pages/home";
 import Musica from "@/pages/musica";
 import Noticias from "@/pages/noticias";
@@ -45,6 +46,7 @@ export function MyRoutes() {
                                 <Route path="/noticias" element={<Noticias />} />
                                 <Route path="/blog" element={<Blog />} />
                                 <Route path="/features" element={<Features />} />
+                                <Route path="/shortcuts" element={<Shortcuts />} />
                                 <Route path="/musica" element={<Musica />} />
                                 <Route path="/extras" element={<Extras />} />
                                 <Route path="/projects" element={<Projects />} />

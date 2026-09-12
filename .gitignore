@@ -37,11 +37,12 @@ pnpm-lock.yaml
 
 #IA
 .agent/
-openspec/
 .atl
 
 # Docs
 implements-md/
 docs/
+run-debug.bat
+run-debug.ps1
 .openspec/001-auto-updater-silent.md
 .openspec/002-refactor-components.md

@@ -151,8 +151,8 @@ export function UpdateNotification({
         );
     }
 
-    // ── Descargando / listo para instalar (se ocultan, los manejan otros componentes) ──
-    if (state === "downloading" || state === "downloaded") {
+    // ── Descargando / listo para instalar / instalando (se ocultan, los manejan otros componentes) ──
+    if (state === "downloading" || state === "downloaded" || state === "installing") {
         return null;
     }
 

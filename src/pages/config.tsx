@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IconSettings, IconCheck, IconX } from "@tabler/icons-react";
-import { useUpdater } from "@/features/updater/hooks/useUpdater";
-import {
-    UpdateNotification,
-    UpdateProgress,
-    UpdateReady,
-} from "@/features/updater/components";
+import { IconSettings, IconCheck, IconX, IconRefresh, IconRocket } from "@tabler/icons-react";
+import { useUpdaterStore } from "@/features/updater/store/useUpdaterStore";
 
 const defaultConfig = {
     darkMode: false,
@@ -24,7 +19,16 @@ const Config = () => {
     );
 
     // ── Updater ──
-    const updater = useUpdater();
+    const updaterState = useUpdaterStore((s) => s.state);
+    const updateInfo = useUpdaterStore((s) => s.updateInfo);
+    const progress = useUpdaterStore((s) => s.progress);
+    const checkForUpdates = useUpdaterStore((s) => s.checkForUpdates);
+    const quitAndInstall = useUpdaterStore((s) => s.quitAndInstall);
+    const [appVersion, setAppVersion] = useState<string | null>(null);
+
+    useEffect(() => {
+        window.electronAPI?.getVersion().then(setAppVersion);
+    }, []);
 
     useEffect(() => {
         document.documentElement.classList.toggle("dark", config.darkMode);
@@ -144,47 +148,63 @@ const Config = () => {
 
                 {/* Updater section */}
                 <div className="rounded-xl bg-white/[0.03] border border-white/5 divide-y divide-white/5">
-                    <div className="px-5 py-3">
+                    <div className="px-5 py-3 flex items-center justify-between">
                         <h2 className="text-sm font-semibold text-white/60">
                             Actualizaciones
                         </h2>
+                        {appVersion && (
+                            <span className="text-xs text-white/30 bg-white/5 px-2 py-0.5 rounded-full">
+                                v{appVersion}
+                            </span>
+                        )}
                     </div>
 
-                    <div className="p-5 space-y-3">
-                        {/* Notification: shows check button or available update */}
-                        <UpdateNotification
-                            state={updater.state}
-                            updateInfo={updater.updateInfo}
-                            onCheck={updater.checkForUpdates}
-                            onDownload={updater.downloadUpdate}
-                        />
-
-                        {/* Progress bar: shows during download */}
-                        {updater.state === "downloading" && updater.progress && (
-                            <UpdateProgress
-                                percent={updater.progress.percent}
-                                bytesPerSecond={updater.progress.bytesPerSecond}
-                                transferred={updater.progress.transferred}
-                                total={updater.progress.total}
-                            />
-                        )}
-
-                        {/* Ready: shows after download completes */}
-                        {updater.state === "downloaded" && (
-                            <UpdateReady
-                                updateInfo={updater.updateInfo}
-                                onRestart={updater.quitAndInstall}
-                            />
-                        )}
-
-                        {/* Error state */}
-                        {updater.state === "error" && updater.error && (
-                            <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3">
-                                <p className="text-xs text-red-400">
-                                    Error: {updater.error.message}
+                    <div className="p-5">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10">
+                                <IconRocket size={20} className="text-violet-400" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium text-white/80">
+                                    {updaterState === "downloading"
+                                        ? `Descargando... ${Math.round(progress?.percent || 0)}%`
+                                        : updaterState === "downloaded"
+                                            ? `${updateInfo?.version || ""} listo para instalar`
+                                            : updaterState === "checking"
+                                                ? "Buscando actualizaciones..."
+                                                : updaterState === "available"
+                                                    ? `Nueva versión ${updateInfo?.version}`
+                                                    : updaterState === "not-available"
+                                                        ? "Ya estás en la última versión"
+                                                        : updaterState === "error"
+                                                            ? "Error al buscar actualizaciones"
+                                                            : "Las actualizaciones se buscan automáticamente"}
+                                </p>
+                                <p className="text-xs text-white/30 mt-0.5">
+                                    Se verifica cada 4 horas al iniciar la app
                                 </p>
                             </div>
-                        )}
+                            <div className="flex gap-2">
+                                {updaterState === "downloaded" ? (
+                                    <button
+                                        onClick={quitAndInstall}
+                                        className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-400 transition-colors"
+                                    >
+                                        <IconRefresh size={12} />
+                                        Reiniciar
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={checkForUpdates}
+                                        disabled={updaterState === "checking"}
+                                        className="flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-white/60 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
+                                    >
+                                        <IconRefresh size={12} className={updaterState === "checking" ? "animate-spin" : ""} />
+                                        Buscar
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
