@@ -13,6 +13,7 @@ import {
     IconNotebook,
     IconBookmark,
     IconBrandGithub,
+    IconKeyboard,
     IconChevronLeft,
     IconChevronRight,
 } from "@tabler/icons-react";
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
     { label: "Noticias", path: "/noticias", icon: <IconNews size={22} /> },
     { label: "Blog", path: "/blog", icon: <IconPencil size={22} /> },
     { label: "Features", path: "/features", icon: <IconRocket size={22} /> },
+    { label: "Shortcuts", path: "/shortcuts", icon: <IconKeyboard size={22} /> },
     { label: "Música", path: "/musica", icon: <IconMusic size={22} /> },
     { label: "Extras", path: "/extras", icon: <IconStar size={22} /> },
     { label: "Bookmarks", path: "/bookmarks", icon: <IconBookmark size={22} /> },
