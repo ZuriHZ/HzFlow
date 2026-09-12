@@ -43,3 +43,5 @@ openspec/
 # Docs
 implements-md/
 docs/
+.openspec/001-auto-updater-silent.md
+.openspec/002-refactor-components.md
