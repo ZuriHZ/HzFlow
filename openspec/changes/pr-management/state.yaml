@@ -1,0 +1,15 @@
+change: pr-management
+mode: openspec
+phase: tasks
+artifacts:
+  proposal: done
+  specs: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+updated_at: "2026-09-08"
+notes: |
+  Builds on top of github-prs change (read-only viewer).
+  Adds write operations: merge, close/reopen, reviews, edit, reviewers, labels.

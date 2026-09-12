@@ -51,7 +51,7 @@ export default function Notes() {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-white/90">
-                            Dev Notes
+                            Dev Notes HzFlow
                         </h1>
                         <p className="text-sm text-white/40">
                             Tus notas de desarrollo

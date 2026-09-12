@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("isElectron", true);
 
 contextBridge.exposeInMainWorld("electronAPI", {
+    getVersion: () => ipcRenderer.invoke("app:get-version"),
     onUpdateTheme: (callback) => ipcRenderer.on("update-theme", callback),
     onUpdateThemeAsync: async () => ipcRenderer.invoke("update-theme"),
     minimize: () => ipcRenderer.send("minimize-window"),

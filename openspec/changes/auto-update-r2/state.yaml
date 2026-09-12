@@ -1,17 +1,18 @@
 change: auto-update-r2
 mode: openspec
-phase: proposal
+phase: apply
 artifacts:
-  proposal: done
-  specs: pending
-  design: pending
-  tasks: pending
-  apply: pending
+  proposal: openspec/changes/auto-update-r2/proposal.md
+  design: openspec/changes/auto-update-r2/design.md
+  specs: openspec/changes/auto-update-r2/specs
+  tasks: openspec/changes/auto-update-r2/tasks.md
+  apply: done
   verify: pending
   archive: pending
+created_at: "2026-09-09"
 updated_at: "2026-09-10"
 notes: |
-  Cloudflare R2 bucket zurihz-updates creado y configurado.
-  API Token generado con permisos Read/Write.
-  Documentación en docs/auto-update-cloudflare-r2.md.
-  Pendiente: instalar electron-updater y desarrollar el módulo.
+  Auto-update vía Cloudflare R2 funcional.
+  v1.0.1 publicada en R2, PR #4 merged.
+  Provider: generic con r2.dev public URL.
+  Pendientes menores: layout integration, error states, docs.
