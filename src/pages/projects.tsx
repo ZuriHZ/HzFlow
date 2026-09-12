@@ -1,9 +1,9 @@
-import React from "react";
-import { motion } from "framer-motion";
 import { IconFolder, IconSearch } from "@tabler/icons-react";
-import { useProjects } from "@/features/projects/hooks/useProjects";
-import ProjectGrid from "@/features/projects/components/ProjectGrid";
+import { motion } from "framer-motion";
+import React from "react";
 import AddProjectDialog from "@/features/projects/components/AddProjectDialog";
+import ProjectGrid from "@/features/projects/components/ProjectGrid";
+import { useProjects } from "@/features/projects/hooks/useProjects";
 import { cn } from "@/lib/utils";
 
 const fadeUp = {
@@ -42,7 +42,7 @@ export default function Projects() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-white/90">
-                                Mis Proyectos
+                                Mis Proyectos Locura
                             </h1>
                             <p className="text-sm text-white/40">
                                 Organiza y accede a tus proyectos de desarrollo

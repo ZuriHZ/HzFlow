@@ -8,7 +8,7 @@ export default function Footer() {
     return (
         <footer className="w-full border-t border-border px-6 py-3">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>© {year} ZuriHZ — Electron App</span>
+                <span>© {year} ZuriHZ — Desktop App</span>
 
                 <PomodoroWidget />
 
