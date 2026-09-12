@@ -199,7 +199,7 @@ const REQUIRED_FILES = [
     ".zip",                 // Archivo portable (si existe)
 ];
 
-function findReleaseFiles(dir: string): string[] {
+function findReleaseFiles(dir: string, version: string): string[] {
     const results: string[] = [];
     const items = fs.readdirSync(dir);
 
@@ -208,12 +208,11 @@ function findReleaseFiles(dir: string): string[] {
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory()) {
-            // Ignorar win-unpacked y otras carpetas
             if (item === "win-unpacked" || item === "mac" || item === "linux-unpacked") {
                 continue;
             }
-            results.push(...findReleaseFiles(fullPath));
-        } else if (isReleaseFile(item)) {
+            results.push(...findReleaseFiles(fullPath, version));
+        } else if (isReleaseFile(item) && (item.includes(version) || item === "latest.yml")) {
             results.push(fullPath);
         }
     }
@@ -349,13 +348,6 @@ async function main(): Promise<void> {
         process.exit(1);
     }
 
-    // Find files
-    const files = findReleaseFiles(releaseDir);
-    if (files.length === 0) {
-        console.error("❌ No se encontraron archivos en release/");
-        process.exit(1);
-    }
-
     // Parse latest.yml for version info
     const latestYmlPath = path.join(releaseDir, "latest.yml");
     const versionInfo = parseLatestYml(latestYmlPath);
@@ -364,6 +356,13 @@ async function main(): Promise<void> {
     if (!version) {
         console.error("❌ No se pudo determinar la versión");
         console.error("   Usa --version <ver> o asegúrate de que latest.yml existe");
+        process.exit(1);
+    }
+
+    // Find files for this version only
+    const files = findReleaseFiles(releaseDir, version);
+    if (files.length === 0) {
+        console.error("❌ No se encontraron archivos en release/");
         process.exit(1);
     }
 

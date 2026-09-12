@@ -1,5 +1,6 @@
 const { autoUpdater } = require("./config");
-const { BrowserWindow } = require("electron");
+const { BrowserWindow, app } = require("electron");
+const path = require("path");
 
 // ──────────────────────────────────────────────
 // Eventos de autoUpdater → IPC al renderer

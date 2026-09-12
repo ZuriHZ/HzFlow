@@ -138,6 +138,7 @@ interface GithubApi {
 
 interface ElectronAPI {
     // Existing: Window & Theme
+    getVersion: () => Promise<string>;
     minimize: () => void;
     maximize: () => void;
     close: () => void;
@@ -226,4 +227,4 @@ interface UpdaterIpcError {
 type UpdaterCheckResult =
     | { state: "available"; info: UpdaterVersionInfo }
     | { state: "not-available" }
-    | { state: "error"; error: UpdaterIpcError };
+    | { state: "error"; error?: UpdaterIpcError };
