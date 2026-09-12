@@ -1,21 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 // ──────────────────────────────────────────────
 // useUpdater Hook
 // ──────────────────────────────────────────────
 //
-// Este hook gestiona el estado de la actualización
-// en el renderer (React). Se comunica con el main
-// process via el preload bridge.
+// Gestiona el estado de la actualización en el renderer.
 //
-// Estados posibles:
-//   idle        → Sin actividad, esperando
-//   checking    → Buscando actualizaciones en R2
-//   available   → Nueva versión encontrada, lista para descargar
-//   not-available → Ya estás en la última versión
-//   downloading → Descargando la actualización
-//   downloaded  → Descarga completa, lista para instalar
-//   error       → Algo salió mal
+// Dos fuentes de verdad:
+//   1. Auto-check (main process, cada 3s) → eventos on*
+//   2. Manual check (usuario hace click) → resultado IPC
+//
+// Regla: cuando el usuario hace click en "Buscar",
+// se ignora el auto-check hasta que el IPC responda.
+// Esto evita race conditions y flicker de estado.
 
 type UpdaterState =
     | "idle"
@@ -24,6 +21,7 @@ type UpdaterState =
     | "not-available"
     | "downloading"
     | "downloaded"
+    | "installing"
     | "error";
 
 interface UpdateInfo {
@@ -50,26 +48,29 @@ export function useUpdater() {
     const [progress, setProgress] = useState<DownloadProgress | null>(null);
     const [error, setError] = useState<UpdaterError | null>(null);
 
+    // Ref para evitar que auto-check events sobreescriban
+    // el resultado de un manual check en progreso
+    const manualCheckActive = useRef(false);
+
     // ── Acciones ──
 
     const checkForUpdates = useCallback(async () => {
+        manualCheckActive.current = true;
         setState("checking");
         setError(null);
         setProgress(null);
 
         try {
-            // Delay mínimo de 3s para que el usuario vea el spinner
-            const result = await Promise.all([
-                window.electronAPI.updater.checkForUpdates(),
-                new Promise((resolve) => setTimeout(resolve, 3000)),
-            ]).then(([res]) => res);
+            const result = await window.electronAPI.updater.checkForUpdates();
 
             if (result.state === "available") {
                 setUpdateInfo(result.info);
                 setState("available");
             } else if (result.state === "not-available") {
+                setUpdateInfo(null);
                 setState("not-available");
-            } else if (result.state === "error") {
+            } else if (result.state === "error" && result.error) {
+                setUpdateInfo(null);
                 setError(result.error);
                 setState("error");
             }
@@ -79,10 +80,14 @@ export function useUpdater() {
                 message: err instanceof Error ? err.message : "Unknown error",
             });
             setState("error");
+        } finally {
+            manualCheckActive.current = false;
         }
     }, []);
 
     const downloadUpdate = useCallback(async () => {
+        if (state !== "available") return;
+
         setState("downloading");
         setProgress(null);
         setError(null);
@@ -90,13 +95,24 @@ export function useUpdater() {
         try {
             const result = await window.electronAPI.updater.downloadUpdate();
 
-            if (result.ok) {
-                // La descarga se completa, el estado se actualúa
-                // por el evento on-downloaded del main process
-            } else {
+            if (!result.ok && result.error) {
                 setError(result.error);
                 setState("error");
             }
+            // Si ok, el estado se actualiza por el evento on-downloaded
+        } catch (err) {
+            setError({
+                code: "IPC_FAILED",
+                message: err instanceof Error ? err.message : "Unknown error",
+            });
+            setState("error");
+        }
+    }, [state]);
+
+    const quitAndInstall = useCallback(async () => {
+        setState("installing");
+        try {
+            await window.electronAPI.updater.quitAndInstall();
         } catch (err) {
             setError({
                 code: "IPC_FAILED",
@@ -106,58 +122,61 @@ export function useUpdater() {
         }
     }, []);
 
-    const quitAndInstall = useCallback(async () => {
-        await window.electronAPI.updater.quitAndInstall();
-    }, []);
-
-    // ── Suscripción a eventos del main process ──
+    // ── Suscripción a eventos del main process (auto-check) ──
 
     useEffect(() => {
-        const api = window.electronAPI.updater;
+        const api = window.electronAPI?.updater;
         if (!api) return;
 
-        // Cuando el main empieza a buscar actualizaciones
-        const unsubChecking = api.onChecking(() => {
-            setState("checking");
-        });
+        const unsubs: (() => void)[] = [];
 
-        // Cuando hay una versión nueva disponible
-        const unsubAvailable = api.onAvailable((info: UpdateInfo) => {
-            setUpdateInfo(info);
-            setState("available");
-        });
+        unsubs.push(
+            api.onChecking(() => {
+                if (manualCheckActive.current) return;
+                setState("checking");
+            }) ?? (() => {})
+        );
 
-        // Cuando no hay actualización disponible
-        const unsubNotAvailable = api.onNotAvailable(() => {
-            setState("not-available");
-        });
+        unsubs.push(
+            api.onAvailable((info: UpdateInfo) => {
+                if (manualCheckActive.current) return;
+                setUpdateInfo(info);
+                setState("available");
+            }) ?? (() => {})
+        );
 
-        // Progreso de la descarga (se emite repetidamente)
-        const unsubProgress = api.onProgress((prog: DownloadProgress) => {
-            setProgress(prog);
-        });
+        unsubs.push(
+            api.onNotAvailable(() => {
+                if (manualCheckActive.current) return;
+                setUpdateInfo(null);
+                setState("not-available");
+            }) ?? (() => {})
+        );
 
-        // Descarga completada, lista para instalar
-        const unsubDownloaded = api.onDownloaded((info: UpdateInfo) => {
-            setUpdateInfo(info);
-            setState("downloaded");
-            setProgress(null);
-        });
+        unsubs.push(
+            api.onProgress((prog: DownloadProgress) => {
+                setProgress(prog);
+            }) ?? (() => {})
+        );
 
-        // Error en el proceso
-        const unsubError = api.onError((err: UpdaterError) => {
-            setError(err);
-            setState("error");
-        });
+        unsubs.push(
+            api.onDownloaded((info: UpdateInfo) => {
+                setUpdateInfo(info);
+                setState("downloaded");
+                setProgress(null);
+            }) ?? (() => {})
+        );
 
-        // Cleanup: remover listeners cuando el componente se desmonta
+        unsubs.push(
+            api.onError((err: UpdaterError) => {
+                setUpdateInfo(null);
+                setError(err);
+                setState("error");
+            }) ?? (() => {})
+        );
+
         return () => {
-            unsubChecking?.();
-            unsubAvailable?.();
-            unsubNotAvailable?.();
-            unsubProgress?.();
-            unsubDownloaded?.();
-            unsubError?.();
+            unsubs.forEach((fn) => fn());
         };
     }, []);
 
@@ -166,7 +185,6 @@ export function useUpdater() {
         updateInfo,
         progress,
         error,
-        // Acciones
         checkForUpdates,
         downloadUpdate,
         quitAndInstall,
